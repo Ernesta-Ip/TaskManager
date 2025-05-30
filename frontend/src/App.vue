@@ -785,21 +785,33 @@ select {
 
 .burger-container {
   position: fixed;
-  top: 1rem;
-  left: 0;
-  right: 0;
+  top: 2rem;
+  left: 1rem;
+  /* width: 68px; */
   display: flex;
-  justify-content: flex-start; 
-  padding: 10 10 rem; 
-  z-index: 900;
+  justify-content: flex-start;
+  padding-left: 0.1rem;
+  padding-right: 0.1rem;
+  z-index: 1000;
 }
+
+
 .menu-toggle {
-  background: transparent;
-  border: none;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  border-radius: 8px;
   font-size: 1.5rem;
   cursor: pointer;
   color: #555;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: background 0.2s ease;
 }
+
+.menu-toggle:hover {
+  background: #f5f5f5;
+}
+
 
 @keyframes fadeIn {
   from {

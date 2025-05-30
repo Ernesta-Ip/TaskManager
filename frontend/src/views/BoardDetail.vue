@@ -366,7 +366,6 @@ handleClickOutside(event) {
         getAttachmentName(attachment) {
           if (!attachment) return '';
           if (typeof attachment === 'string') {
-            // Извлекаем имя из пути
             return attachment.split('/').pop();
           }
           if (attachment instanceof File) {
@@ -526,7 +525,8 @@ memberList.forEach(email => {
   
   <template>
 
-   <div class="board-detail">
+  <div class="container board-container">
+
   <!-- Board header row: name on left, visibility & members on right -->
   <section class="section pt-3 pb-3">
     <div class="container" style="padding-left: 0;">
@@ -860,15 +860,18 @@ memberList.forEach(email => {
         <div class="control">
           <input class="input" type="file" @change="handleAttachment" />
         </div>
-        <div v-if="activeCard.attachment" class="mt-2">
-          <a :href="fileUrl(activeCard.attachment)"
-             target="_blank"
-             rel="noopener noreferrer"
-             class="has-text-link">
-            📎 {{ getAttachmentName(activeCard.attachment) }}
-          </a>
-          <button class="delete is-small" @click="removeAttachment"></button>
-        </div>
+          <div v-if="activeCard.attachment" class="mt-2">
+            <a
+              :href="fileUrl(activeCard.attachment)"
+              :download="getAttachmentName(activeCard.attachment)"  
+              target="_blank"
+              rel="noopener noreferrer"
+              class="has-text-link"
+            >
+              📎 {{ getAttachmentName(activeCard.attachment) }}
+            </a>
+            <button class="delete is-small" @click="removeAttachment"></button>
+          </div>
       </div>
 
       <div class="field">
@@ -1034,11 +1037,13 @@ memberList.forEach(email => {
   .lists {
     flex-direction: column;
     align-items: stretch;
+    padding-left: 68px; 
   }
 
   .list {
     width: 100%;
     margin-bottom: 1rem;
+    padding-left: 68px; 
   }
 
   .add-list {
@@ -1103,11 +1108,20 @@ select {
   transform: translateY(0);
 }
 
-
 button.is-disabled {
   pointer-events: none;
   opacity: 0.5;
   cursor: not-allowed;
+}
+.board-container {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (max-width: 768px) {
+  .board-container {
+    padding-left: 68px; 
+  }
 }
 
 
