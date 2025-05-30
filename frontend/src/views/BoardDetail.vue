@@ -541,7 +541,7 @@ memberList.forEach(email => {
         class="icon is-small has-text-grey is-clickable"
         :class="{ 'is-disabled': isSkipped }"
         :disabled="isSkipped"
-        @click="!isSkipped && renameBoard" 
+        @click="!isSkipped && renameBoard()" 
         title="Edit board name"
       >
         <i class="fas fa-pen"></i>

@@ -1,9 +1,13 @@
 <template>
   <div class="app">
  
-    <button class="menu-toggle is-hidden-desktop" @click="toggleSidebar">
-      <span class="icon"><i class="fas fa-bars"></i></span>
-    </button>
+<!-- Burger menu -->
+<div class="burger-container" v-if="isSidebarHidden">
+  <button class="menu-toggle" @click="toggleSidebar">
+    <span class="icon"><i class="fas fa-bars"></i></span>
+  </button>
+</div>
+
 
 <div v-if="showBoardModal" class="modal is-active">
   <div class="modal-background" @click="closeBoardModal"></div>
@@ -57,9 +61,8 @@
 
 
     <aside
-      v-if="$route.name !== 'Login'"
+     v-if="$route.name !== 'Login' && !isSidebarHidden"
       class="menu has-background-light px-5 py-5"
-      :class="{ 'is-hidden-touch': isSidebarHidden }"
       :style="{ width: sidebarWidth + 'px' }"
     >
     
@@ -779,6 +782,25 @@ select {
   opacity: 1;
   pointer-events: auto;
 }
+
+.burger-container {
+  position: fixed;
+  top: 1rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: flex-start; 
+  padding: 10 10 rem; 
+  z-index: 900;
+}
+.menu-toggle {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #555;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
