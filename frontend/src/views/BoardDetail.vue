@@ -47,6 +47,9 @@
           cardId: null,
           cardTitle: ''
         },
+        modalDeleteAttachment: {
+          isOpen: false,
+        },
         modalRenameBoard: {
           isOpen: false,
           newName: ''
@@ -444,22 +447,23 @@ memberList.forEach(email => {
 }
 },
   
-        async removeAttachment() {
-          if (!this.activeCard || !this.activeCard.id) return;
-          const confirmed = confirm('Are you sure you want to remove the attachment?');
-          if (!confirmed) return;
+          removeAttachment() {
+          this.modalDeleteAttachment.isOpen = true;
+        },
 
+        async confirmRemoveAttachment() {
           try {
             await api.patch(`cards/${this.activeCard.id}/`, {
               attachment: null,
             });
-
-            this.activeCard.attachment = null; 
+            this.activeCard.attachment = null;
+            this.modalDeleteAttachment.isOpen = false;
           } catch (err) {
             console.error('Failed to remove attachment:', err);
             alert('Could not remove attachment.');
           }
         },
+
 
         addComment() {
           if (!this.activeCard.newComment) return;
@@ -925,6 +929,25 @@ memberList.forEach(email => {
           </footer>
         </div>
       </div>
+
+        <!-- Confirm Attachment Deletion Modal -->
+        <div class="modal" v-if="activeCard" :class="{ 'is-active': modalDeleteAttachment.isOpen }">
+          <div class="modal-background" @click="modalDeleteAttachment.isOpen = false"></div>
+          <div class="modal-card">
+            <header class="modal-card-head">
+              <p class="modal-card-title">Remove Attachment</p>
+              <button class="delete" aria-label="close" @click="modalDeleteAttachment.isOpen = false"></button>
+            </header>
+            <section class="modal-card-body">
+              Are you sure you want to remove the attached file <strong>"{{ activeCard ? getAttachmentName(activeCard.attachment) : '' }}"</strong>?
+            </section>
+            <footer class="modal-card-foot">
+              <button class="button is-danger" @click="confirmRemoveAttachment">Remove</button>
+              <button class="button" @click="modalDeleteAttachment.isOpen = false">Cancel</button>
+            </footer>
+          </div>
+        </div>
+
 
       <!-- Rename List Modal Window -->
           <div class="modal" :class="{ 'is-active': modalRename.isOpen }">

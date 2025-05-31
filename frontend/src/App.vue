@@ -1,3 +1,5 @@
+import draggable from 'vuedraggable';
+
 <template>
   <div class="app">
  
@@ -87,18 +89,25 @@
       </span>
       
     </div>
-        <ul v-if="showBoardList" class="board-list">
-        <li
-            v-for="board in activeBoards"
-            :key="board.id"
-          class="board-item"
-          :class="{ active: board.id === selectedBoardId }"
-          @mouseenter="hoveredBoardId = board.id"
-          @mouseleave="handleMouseLeave(board.id)"
-        >
-          <span class="board-name" @click="goToBoardFromList(board.id)">
-            {{ board.name }}
-          </span>
+   <draggable
+  v-if="showBoardList"
+  v-model="boards"
+  :list="activeBoards"
+  item-key="id"
+  group="boards"
+  class="board-list"
+  @end="onBoardDrop"
+>
+  <template #item="{ element: board }">
+    <li
+      class="board-item"
+      :class="{ active: board.id === selectedBoardId }"
+      @mouseenter="hoveredBoardId = board.id"
+      @mouseleave="handleMouseLeave(board.id)"
+    >
+      <span class="board-name" @click="goToBoardFromList(board.id)">
+        {{ board.name }}
+      </span>
 
           <!-- Drop-down menu -->
           <div class="dropdown is-active">
@@ -159,8 +168,9 @@
             </div>
           </div>
           </div>
-        </li>
-      </ul>
+    </li>
+  </template>
+</draggable>
 
     <!-- Add new board button-->
       <button class="button is-fullwidth is-small is-light mt-4" @click="showBoardModal = true">
@@ -366,6 +376,9 @@
 
 import { api } from '@/api';
 import { useRouter } from 'vue-router';
+import draggable from 'vuedraggable';
+
+
 
 export default {
    setup() {
@@ -373,6 +386,9 @@ export default {
     return { router };
   },
   name: 'App',
+  components: {
+    draggable,
+  },
    
   data() {
     return {
@@ -622,7 +638,21 @@ export default {
       } catch (err) {
         console.error('Failed to create board:', err);
       }
+    },
+    
+    async onBoardDrop() {
+  try {
+    for (let i = 0; i < this.boards.length; i++) {
+      const board = this.boards[i];
+      await api.patch(`boards/${board.id}/`, {
+        order: i,
+      });
     }
+  } catch (err) {
+    console.error('Failed to update board order:', err);
+  }
+},
+
   },
 };
 </script>

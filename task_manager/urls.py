@@ -1,11 +1,16 @@
 from django.contrib import admin
 from django.urls import path, include
 from tasks.views import login_redirect_view
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('tasks.urls')), 
     path('accounts/', include('allauth.urls')), 
     path('auth/', include('rest_framework.urls')),
-    # path('login-redirect/', login_redirect_view, name='login-redirect'),
+    
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
