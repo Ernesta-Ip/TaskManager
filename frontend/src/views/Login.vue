@@ -1,5 +1,5 @@
-<!-- eslint-disable vue/multi-word-component-names
-<template>
+<!--eslint-disable vue/multi-word-component-names--> 
+<!-- <template>
   <section class="section">
     <div class="container has-text-centered">
 
@@ -26,7 +26,7 @@
         </button>
       </div>
 
-      Notification under the buttons -->
+      <!--Notification under the buttons -->
         <!-- <div class="notification-wrapper mt-4">
         <transition name="fade">
             <p
@@ -40,10 +40,10 @@
 
     </div>
   </section>
-</template>
+</template> -->
 
 
-<script setup>
+<!-- <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { api } from '@/api';
@@ -79,9 +79,9 @@ function skipLogin() {
 onMounted(() => {
   console.log('Login mounted');
 });
-</script>
+</script> -->
 
-<style scoped>
+<!-- <style scoped>
 .section {
   display: flex;
   justify-content: center;
@@ -114,4 +114,4 @@ onMounted(() => {
   margin: 0;
 }
 
-</style> -->
+</style>  --> -->

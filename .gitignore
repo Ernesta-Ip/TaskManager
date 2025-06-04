@@ -6,3 +6,4 @@ media/attachments/
 __pycache__/
 .browserslistrc
 .eslintrc.js
+.idea/
