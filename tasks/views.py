@@ -13,10 +13,37 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
+class CustomGoogleOAuth2Client(OAuth2Client):
+    def __init__(
+        self,
+        request,
+        consumer_key,
+        consumer_secret,
+        access_token_method,
+        access_token_url,
+        callback_url,
+        _scope,  # This is fix for incompatibility between django-allauth==65.3.1 and dj-rest-auth==7.0.1
+        scope_delimiter=" ",
+        headers=None,
+        basic_auth=False,
+    ):
+        super().__init__(
+            request,
+            consumer_key,
+            consumer_secret,
+            access_token_method,
+            access_token_url,
+            callback_url,
+            scope_delimiter,
+            headers,
+            basic_auth,
+        )
+
+
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
     callback_url = settings.GOOGLE_OAUTH_CALLBACK_URL
-    client_class = OAuth2Client
+    client_class = CustomGoogleOAuth2Client # OAuth2Client
 
 from django.conf import settings
 from django.shortcuts import render, redirect
@@ -69,10 +96,11 @@ class GoogleLoginCallback(APIView):
         if code is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        # Remember to replace the localhost:8000 with the actual domain name before deployment
+        # TODO: Remember to replace the localhost:8001 with the actual domain name before deployment
         token_endpoint_url = urljoin("http://localhost:8001", reverse("google_login"))
+        print("token_endpoint_url", token_endpoint_url)
         response = requests.post(url=token_endpoint_url, data={"code": code})
-
+        # print("response: ", response.text)
         return Response(response.json(), status=status.HTTP_200_OK)
 
 class LoginPage(View):

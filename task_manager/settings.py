@@ -2,11 +2,11 @@ from pathlib import Path
 import logging
 
 
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ]
-}
+# REST_FRAMEWORK = {
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.AllowAny',
+#     ]
+# }
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,8 +27,8 @@ ALLOWED_HOSTS = []
 
 # ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
-ACCOUNT_ADAPTER = 'allauth.account.adapter.DefaultAccountAdapter'
-SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+# ACCOUNT_ADAPTER = 'allauth.account.adapter.DefaultAccountAdapter'
+# SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
 
 # Application definition
 
@@ -49,8 +49,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'dj_rest_auth.registration',
-    # 'dj_rest_auth',
-    #'api',
+    'dj_rest_auth',
+    # 'api',
 ]
 
 MIDDLEWARE = [
@@ -68,9 +68,8 @@ MIDDLEWARE = [
 # django.contrib.sites
 
 SITE_ID = 1
-ACCOUNT_AUTHENTICATION_METHOD = "email"  # Use Email / Password authentication
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_LOGIN_METHODS = {'email'}  # Use Email / Password authentication
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = "none" # Do not require email confirmation
 
 # django-allauth (social)
@@ -185,5 +184,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-LOGIN_REDIRECT_URL = '/auth/login/redirect/'
+# LOGIN_REDIRECT_URL = '/auth/login/redirect/'
 
