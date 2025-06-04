@@ -6,7 +6,7 @@ from django.conf.urls.static import static
 from tasks.views import login_redirect_view
 
 urlpatterns = [
-      path("/", LoginPage.as_view(), name="home"),
+      path("", LoginPage.as_view(), name="home"),
       path('admin/', admin.site.urls),
       path('api/', include('tasks.urls')), 
       path("auth/login/redirect/", login_redirect_view, name="login_redirect"),
