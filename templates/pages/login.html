@@ -3,39 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <title>Sign In</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+</head>
+
+<body>
+    <section class="section">
+        <div class="container has-text-centered">
+
+            <h1 class="title is-3 mb-4">Welcome to Task Manager</h1>
+            <p class="subtitle is-5">Please sign in with your Google account</p>
+
+            <div class="buttons is-centered mt-5">
+                <a href="{{ google_login_url }}" class="button is-primary is-medium">
+                    Sign in with Google
+                </a>
+                <button
+                  class="button is-light is-medium"
+                  id="skipLoginButton"
+                >
+                  Skip step
+                </button>
+            </div>
+
+            <div class="notification-wrapper mt-4">
+                <p id="skipWarning" class="notification is-light is-hidden">
+                    If you skip login, you will only be able to view and create public boards accessible to all users.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const skipLoginButton = document.getElementById('skipLoginButton');
+        const skipWarning = document.getElementById('skipWarning');
+
+        skipLoginButton.addEventListener('mouseenter', () => {
+            skipWarning.classList.remove('is-hidden');
+            skipWarning.classList.add('fade-enter-active', 'fade-enter-from');
+            setTimeout(() => {
+                skipWarning.classList.remove('fade-enter-from');
+            }, 10);
+        });
+
+        skipLoginButton.addEventListener('mouseleave', () => {
+            skipWarning.classList.add('fade-leave-active', 'fade-leave-to');
+            setTimeout(() => {
+                skipWarning.classList.add('is-hidden');
+                skipWarning.classList.remove('fade-leave-to', 'fade-leave-active');
+            }, 100);
+        });
+
+        // Замените этот URL на ваш актуальный
+        const googleLoginUrl = "https://accounts.google.com/o/oauth2/v2/auth?redirect_uri={{ google_callback_uri }}&prompt=consent&response_type=code&client_id={{ google_client_id }}&scope=openid%20email%20profile&access_type=online";
+        document.querySelector('.button.is-primary').href = googleLoginUrl;
+
+        skipLoginButton.addEventListener('click', () => {
+            console.log('Skipping login. You would typically redirect or perform an API call here.');
+        });
+    </script>
+
     <style>
-        body {
-            width: 100vw;
-            height: 100vh;
-        }
-
-        .center {
+        html, body {
             height: 100%;
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars due to height: 100vh on section */
+        }
+        .section {
             display: flex;
-            align-items: center;
             justify-content: center;
-        }
-
-        .container {
-            width: 400px;
-            padding: 20px;
-            border: 1px solid gray;
-            border-radius: 4px;
-        }
-
-        .title {
+            align-items: center;
+            min-height: 100vh; /* Use min-height to ensure it covers the viewport */
             text-align: center;
         }
+
+        .image-center {
+            margin: 0 auto 2rem; /* Center the image and add bottom margin */
+        }
+
+        .notification-wrapper {
+            position: relative;
+            height: 3rem; /* Adjust height as needed for the notification */
+        }
+
+        .notification-wrapper .notification {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: max-content;
+            max-width: 100%;
+            margin: 0;
+        }
+
+        .fade-enter-active,
+        .fade-leave-active {
+            transition: opacity 0.1s ease;
+        }
+        .fade-enter-from,
+        .fade-leave-to {
+            opacity: 0;
+        }
     </style>
-</head>
-<body>
-<div class="center">
-    <div class="container">
-        <h1 class="title">Sign in</h1>
-        <a href="https://accounts.google.com/o/oauth2/v2/auth?redirect_uri={{ google_callback_uri }}&prompt=consent&response_type=code&client_id={{ google_client_id }}&scope=openid%20email%20profile&access_type=online">
-            Sign in with Google
-        </a>
-    </div>
-</div>
-</body>
 </html>
