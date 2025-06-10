@@ -470,7 +470,7 @@ export default {
 
     logout() {
     localStorage.removeItem('skipAuth');
-    window.location.href = 'http://localhost:8001/accounts/logout/';
+    window.location.href = 'http://localhost:8000/accounts/logout/';
     },
 
     updateSidebarVisibility() {

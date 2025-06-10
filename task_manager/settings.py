@@ -94,16 +94,17 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 GOOGLE_OAUTH_CLIENT_ID = '378522459949-8diehekmesld2rh39n9u17kmjh7lels7.apps.googleusercontent.com'
 GOOGLE_OAUTH_CLIENT_SECRET = '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'
-GOOGLE_OAUTH_CALLBACK_URL="http://localhost:8001/api/v1/auth/google/callback/"
+# GOOGLE_OAUTH_CALLBACK_URL="http://localhost:8000/api/v1/auth/google/callback/"
+GOOGLE_OAUTH_CALLBACK_URL="http://localhost:8080/login_redirect_view"
 
 ROOT_URLCONF = 'task_manager.urls'
 
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:8080',
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8080',
 #     'http://localhost:8081',
 #     'http://localhost:8082',
 #     'http://localhost:8001',  
-# ]
+]
 
 # CORS_ALLOW_CREDENTIALS = True
 

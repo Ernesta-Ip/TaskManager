@@ -53,11 +53,11 @@ from .models import Board, List, Card, Comment
 from .serializers import BoardSerializer, ListSerializer, CardSerializer, CommentSerializer
 from django.contrib.auth.models import User
 
-def login_redirect_view(request):
-     board = Board.objects.filter(is_archived=False).order_by('id').first()
-     if board:
-         return redirect(f'http://localhost:8080/board/{board.id}')
-     return redirect('http://localhost:8080/dashboard')
+# def login_redirect_view(request):
+#      board = Board.objects.filter(is_archived=False).order_by('id').first()
+#      if board:
+#          return redirect(f'http://localhost:8080/board/{board.id}')
+#      return redirect('http://localhost:8080/dashboard')
 
 
 class BoardViewSet(viewsets.ModelViewSet):
@@ -97,7 +97,7 @@ class GoogleLoginCallback(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         # TODO: Remember to replace the localhost:8001 with the actual domain name before deployment
-        token_endpoint_url = urljoin("http://localhost:8001", reverse("google_login"))
+        token_endpoint_url = urljoin("http://localhost:8000", reverse("google_login"))
         print("token_endpoint_url", token_endpoint_url)
         response = requests.post(url=token_endpoint_url, data={"code": code})
         # print("response: ", response.text)

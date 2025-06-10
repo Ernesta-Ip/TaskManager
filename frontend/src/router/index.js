@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Dashboard from '../views/Dashboard.vue';
 import BoardDetailView from '@/views/BoardDetail.vue';
+import LoginRedirect from '@/views/LoginRedirect.vue';
 
 const routes = [
   { path: '/', name: 'Root', component: () => import('@/views/Dashboard.vue') },
@@ -13,6 +14,11 @@ const routes = [
     path: '/board/:id',
     name: 'BoardDetail',
     component: BoardDetailView,
+  }, 
+  {
+    path: '/login_redirect_view', 
+    name: 'LoginRedirect',
+    component: LoginRedirect,
   }
 ];
 
