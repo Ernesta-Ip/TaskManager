@@ -465,12 +465,7 @@ export default {
   methods: {
     goToLogin() {
       localStorage.removeItem('skipAuth');
-      this.$router.push({ name: 'Login' });
-    },
-
-    logout() {
-    localStorage.removeItem('skipAuth');
-    window.location.href = 'http://localhost:8000/accounts/logout/';
+      window.location.href = 'http://localhost:8000/';
     },
 
     updateSidebarVisibility() {

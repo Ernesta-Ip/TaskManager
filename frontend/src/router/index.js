@@ -19,7 +19,8 @@ const routes = [
     path: '/login_redirect_view', 
     name: 'LoginRedirect',
     component: LoginRedirect,
-  }
+  },
+
 ];
 
 const router = createRouter({
