@@ -100,17 +100,16 @@ GOOGLE_OAUTH_CALLBACK_URL="http://localhost:8080/login_redirect_view"
 ROOT_URLCONF = 'task_manager.urls'
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:8080',
+     'http://localhost:8080',
 #     'http://localhost:8081',
 #     'http://localhost:8082',
 #     'http://localhost:8001',  
 ]
+CORS_ALLOW_CREDENTIALS = True
 
-# CORS_ALLOW_CREDENTIALS = True
-
-# SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'Lax'
 # SESSION_COOKIE_SECURE = False
-# CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 TEMPLATES = [
     {

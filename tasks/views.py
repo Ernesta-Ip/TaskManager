@@ -61,10 +61,12 @@ from django.contrib.auth.models import User
 
 
 class BoardViewSet(viewsets.ModelViewSet):
-    serializer_class = BoardSerializer
-    permission_classes = [permissions.AllowAny]
-    def get_queryset(self):
-        return Board.objects.all()
+     queryset = Board.objects.all()
+     serializer_class = BoardSerializer
+     permission_classes = [permissions.AllowAny]
+   
+    # def get_queryset(self):
+    #     return Board.objects.all()
 
 class ListViewSet(viewsets.ModelViewSet):
     queryset = List.objects.all()
@@ -113,4 +115,16 @@ class LoginPage(View):
                 "google_client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
             },
         )
+    
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    callback_url = settings.GOOGLE_OAUTH_CALLBACK_URL
+    client_class = CustomGoogleOAuth2Client
+
+    def post(self, request, *args, **kwargs):
+            response = super().post(request, *args, **kwargs)
+            user = request.user
+            board = Board.objects.filter(user=user, is_archived=False).order_by('id').first()
+            response.data['board_id'] = board.id if board else None
+            return response
 
