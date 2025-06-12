@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'profile_picture']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
     def get_profile_picture(self, user):
         try:
             social_account = SocialAccount.objects.get(user=user, provider='google')

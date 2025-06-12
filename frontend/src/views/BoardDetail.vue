@@ -546,11 +546,9 @@ memberList.forEach(email => {
     },
    }
   
-
-  </script>
+</script>
   
   <template>
-
   <div class="container board-container">
 
   <!-- Board header row: name on left, visibility & members on right -->
@@ -573,8 +571,6 @@ memberList.forEach(email => {
         <i class="fas fa-pen"></i>
       </span>
     </div>
-
-
 
 <div class="is-flex is-flex-wrap-wrap" style="gap: 1.5rem;">
 
@@ -648,13 +644,14 @@ memberList.forEach(email => {
 
 <div class="dropdown-menu" role="menu">
   <div class="dropdown-content">
-
     <div class="dropdown-item is-flex is-flex-direction-column p-2">
       <span class="is-size-7 has-text-grey">You're logged in as</span>
-      <div v-if="currentUser" class="dropdown-item is-flex is-flex-direction-column p-2">
-       <span class="is-size-7 has-text-grey">You're logged in as</span>
-       <strong class="is-size-6">{{ currentUser.email }}</strong>
+    <div v-if="currentUser" class="dropdown-item is-flex is-flex-direction-column p-2">
+      <span class="is-size-7 has-text-grey">You're logged in as</span>
+      <strong class="is-size-6">{{ currentUser.first_name }} {{ currentUser.last_name }}</strong>
+      <span class="is-size-7 has-text-grey">{{ currentUser.email }}</span>
     </div>
+
 
     </div>
 

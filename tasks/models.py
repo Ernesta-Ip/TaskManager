@@ -14,17 +14,14 @@ class Board(models.Model):
     members = models.ManyToManyField(User, related_name='tasks_boards', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_archived = models.BooleanField(default=False)
-
     def __str__(self):
         return self.name
-
 
 class List(models.Model):
     board = models.ForeignKey(Board, related_name='lists', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-
     def __str__(self):
         return f'{self.name} ({self.board.name})'
 
@@ -38,10 +35,8 @@ class Card(models.Model):
     order = models.PositiveIntegerField(default=0)
     members = models.ManyToManyField(User, related_name='cards', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
     def __str__(self):
         return self.title
-
 
 class Comment(models.Model):
     card = models.ForeignKey(Card, on_delete=models.CASCADE, related_name='comments')
@@ -49,7 +44,6 @@ class Comment(models.Model):
     target_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments_about', null=True, blank=True)  # если комментарий "про" другого юзера (необязательно)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-
     def __str__(self):
         return f'Comment by {self.author.username} on {self.card.title}'
 

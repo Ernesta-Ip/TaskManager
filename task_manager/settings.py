@@ -1,12 +1,12 @@
 from pathlib import Path
-import logging
+# import logging
 
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_PERMISSION_CLASSES': [
-#         'rest_framework.permissions.AllowAny',
-#     ]
-# }
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -75,6 +75,9 @@ ACCOUNT_LOGIN_METHODS = {'email'}  # Use Email / Password authentication
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = "none" # Do not require email confirmation
 
+REST_USE_JWT = False
+REST_SESSION_LOGIN = False 
+
 # django-allauth (social)
 # Authenticate if local account with this email address already exists
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
@@ -102,17 +105,26 @@ GOOGLE_OAUTH_CALLBACK_URL="http://localhost:8080/login_redirect_view"
 
 ROOT_URLCONF = 'task_manager.urls'
 
+SOCIALACCOUNT_ADAPTER = 'task_manager.adapter.MySocialAccountAdapter'
+
+REST_AUTH_SERIALIZERS = {
+    'USER_DETAILS_SERIALIZER': 'tasks.serializers.UserSerializer',
+}
+
 CORS_ALLOWED_ORIGINS = [
-     'http://localhost:8080',
-#     'http://localhost:8081',
-#     'http://localhost:8082',
-#     'http://localhost:8001',  
+     'http://localhost:8080', 
 ]
 CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8080",
+]
 
-SESSION_COOKIE_SAMESITE = 'Lax'
+# SESSION_COOKIE_SAMESITE = "Lax"
 # SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SAMESITE = 'Lax'
+
+# CSRF_COOKIE_SAMESITE = "Lax"
+# CSRF_COOKIE_SECURE = False
+
 
 TEMPLATES = [
     {
