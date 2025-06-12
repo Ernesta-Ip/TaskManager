@@ -186,74 +186,82 @@ import draggable from 'vuedraggable';
       </div>
 
 
-        <ul v-if="showArchived" class="board-list archived">
-          <li
-  v-for="board in archivedBoards"
-  :key="board.id"
-  class="board-item"
-  @mouseenter="hoveredBoardId = board.id"
-  @mouseleave="handleMouseLeave(board.id)"
+<draggable
+  v-if="showArchived"
+  v-model="boards"
+  :list="archivedBoards"
+  item-key="id"
+  group="boards"
+  class="board-list archived"
+  @end="onBoardDrop"
 >
-    <span
-      class="board-name"
-      @click="goToBoardFromList(board.id)"
+  <template #item="{ element: board }">
+    <li
+      class="board-item"
+      :class="{ active: board.id === selectedBoardId }"
+      @mouseenter="hoveredBoardId = board.id"
+      @mouseleave="handleMouseLeave(board.id)"
     >
-      {{ board.name }}
-    </span>
-
-<div class="dropdown is-right" :class="{ 'is-active': menuOpenBoardId === board.id }">
-  <div class="dropdown-trigger board-menu-wrapper">
-    <button
-      class="board-options-toggle"
-      @click.stop="toggleMenu(board.id)"
-      :class="{ 'is-visible': hoveredBoardId === board.id || menuOpenBoardId === board.id }"
-    >
-      ⋯
-    </button>
-  </div>
-
-  <div
-    class="dropdown-menu animated-dropdown"
-    role="menu"
-    v-if="menuOpenBoardId === board.id"
-    :ref="'dropdown-' + board.id"
-    @click.self.stop
-  >
-    <div class="dropdown-content">
-      <a class="dropdown-item" @click="openRenameModal(board)">
-        <span class="icon is-small mr-2"><i class="fas fa-pen fa-sm"></i></span>
-        <span>Rename</span>
-      </a>
-      <a
-        v-if="!board.is_archived"
-        class="dropdown-item"
-        @click="openArchiveModal(board)"
+      <span
+        class="board-name"
+        @click="goToBoardFromList(board.id)"
       >
-        <span class="icon is-small mr-2"><i class="fas fa-box fa-sm"></i></span>
-        <span>Archive</span>
-      </a>
-      <a
-        v-if="board.is_archived"
-        class="dropdown-item"
-        @click="restoreBoard(board)"
-      >
-        <span class="icon is-small mr-2"><i class="fas fa-undo fa-sm"></i></span>
-        <span>Restore</span>
-      </a>
-      <a
-        class="dropdown-item has-text-danger"
-        @click="openDeleteModal(board)"
-      >
-        <span class="icon is-small mr-2"><i class="fas fa-trash fa-sm"></i></span>
-        <span>Delete</span>
-      </a>
-    </div>
-  </div>
-</div>
+        {{ board.name }}
+      </span>
 
-</li>
+      <div class="dropdown is-right" :class="{ 'is-active': menuOpenBoardId === board.id }">
+        <div class="dropdown-trigger board-menu-wrapper">
+          <button
+            class="board-options-toggle"
+            @click.stop="toggleMenu(board.id)"
+            :class="{ 'is-visible': hoveredBoardId === board.id || menuOpenBoardId === board.id }"
+          >
+            ⋯
+          </button>
+        </div>
 
-        </ul>
+        <div
+          class="dropdown-menu animated-dropdown"
+          role="menu"
+          v-if="menuOpenBoardId === board.id"
+          :ref="'dropdown-' + board.id"
+          @click.self.stop
+        >
+          <div class="dropdown-content">
+            <a class="dropdown-item" @click="openRenameModal(board)">
+              <span class="icon is-small mr-2"><i class="fas fa-pen fa-sm"></i></span>
+              <span>Rename</span>
+            </a>
+            <a
+              v-if="!board.is_archived"
+              class="dropdown-item"
+              @click="openArchiveModal(board)"
+            >
+              <span class="icon is-small mr-2"><i class="fas fa-box fa-sm"></i></span>
+              <span>Archive</span>
+            </a>
+            <a
+              v-if="board.is_archived"
+              class="dropdown-item"
+              @click="restoreBoard(board)"
+            >
+              <span class="icon is-small mr-2"><i class="fas fa-undo fa-sm"></i></span>
+              <span>Restore</span>
+            </a>
+            <a
+              class="dropdown-item has-text-danger"
+              @click="openDeleteModal(board)"
+            >
+              <span class="icon is-small mr-2"><i class="fas fa-trash fa-sm"></i></span>
+              <span>Delete</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </li>
+  </template>
+</draggable>
+
 </aside>
 
       <!-- Resizer -->
@@ -363,9 +371,6 @@ import draggable from 'vuedraggable';
       </div>
     </div>
 
-
-
-
     <main class="main-content">
       <router-view />
     </main>
@@ -377,8 +382,6 @@ import draggable from 'vuedraggable';
 import { api } from '@/api';
 import { useRouter } from 'vue-router';
 import draggable from 'vuedraggable';
-
-
 
 export default {
    setup() {
@@ -653,7 +656,6 @@ export default {
 </script>
 
 
-
 <style>
 .app {
   display: flex;
@@ -854,9 +856,4 @@ select {
     display: inline-block !important;
   }
 }
-
-
-
-
-
 </style>

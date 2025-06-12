@@ -6,7 +6,13 @@ from django.contrib.auth.models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username']
+        fields = ['id', 'username', 'email', 'profile_picture']
+    def get_profile_picture(self, user):
+        try:
+            social_account = SocialAccount.objects.get(user=user, provider='google')
+            return social_account.extra_data.get('picture')
+        except SocialAccount.DoesNotExist:
+            return None
 
 
 class CommentSerializer(serializers.ModelSerializer):

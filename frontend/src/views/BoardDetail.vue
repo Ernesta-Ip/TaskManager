@@ -10,15 +10,20 @@
     mounted() {
         document.addEventListener('click', this.handleClickOutside);
         document.addEventListener('click', this.handleClickOutsideInput);
+        document.addEventListener('click', this.handleClickOutsideUserMenu);
+        this.getCurrentUser();
       },
     
     beforeUnmount() {
         document.removeEventListener('click', this.handleClickOutside);
         document.removeEventListener('click', this.handleClickOutsideInput);
+        document.removeEventListener('click', this.handleClickOutsideUserMenu);
       },
 
     data() {
       return {
+        currentUser: null,
+        isUserMenuOpen: false,
         activeCard: null,
         hoverCard: null,
         board: {
@@ -76,10 +81,22 @@
 
     methods: {
 
-      goToLogin() {
-      localStorage.removeItem('skipAuth');
-      this.$router.push({ name: 'Login' });
-    },
+      logout() {
+        localStorage.removeItem('skipAuth');
+        document.cookie = 'sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        window.location.href = 'http://localhost:8000/';
+      },
+
+      async getCurrentUser() {
+       try {
+         const res = await api.get('auth/user/');
+         console.log('User:', res.data);
+         this.currentUser = res.data;
+      } catch (err) {
+       console.error('Failed to fetch user:', err);
+       this.currentUser = null;
+      }
+      },
 
       visibilityLabel(value) {
         switch (value) {
@@ -89,6 +106,7 @@
           default: return '';
         }
       },
+
       visibilityIcon(value) {
         switch (value) {
           case 'private': return 'fas fa-lock';
@@ -97,6 +115,7 @@
           default: return '';
         }
       },
+      
       setVisibility(value) {
         this.board.visibility = value;
         this.isVisibilityOpen = false;
@@ -136,6 +155,22 @@
         const inputEl = this.$refs.newListInput;
         if (inputEl && !inputEl.contains(event.target)) {
           this.showListError = false;
+        }
+      },
+
+       handleClickOutsideUserMenu(e) {
+        const dropdown = e.target.closest('.dropdown');
+        if (!dropdown || !dropdown.contains(e.target)) {
+          this.isUserMenuOpen = false;
+        }
+      },
+
+      handleClickOutside(event) {
+        if (this.menuOpenListId === null) return;
+        const menuRef = this.$refs['dropdown-' + this.menuOpenListId];
+        const menuEl = Array.isArray(menuRef) ? menuRef[0] : menuRef;
+        if (menuEl && !menuEl.contains(event.target)) {
+          this.menuOpenListId = null;
         }
       },
 
@@ -193,19 +228,6 @@
           alert('Could not delete card.');
         }
       },
-
-
-handleClickOutside(event) {
-  if (this.menuOpenListId === null) return;
-
-  const menuRef = this.$refs['dropdown-' + this.menuOpenListId];
-  const menuEl = Array.isArray(menuRef) ? menuRef[0] : menuRef;
-
-  if (menuEl && !menuEl.contains(event.target)) {
-    this.menuOpenListId = null;
-  }
-},
-
 
         async fetchBoard(boardId) {
           try {
@@ -608,24 +630,52 @@ memberList.forEach(email => {
     </p>
   </div>
 
-  <!-- User icon in top-right corner -->
-<div v-if="isSkipped" class="is-flex is-align-items-center">
-  <button class="button is-rounded is-light is-small has-text-grey" @click="goToLogin" title="Log in to unlock full access">
-    <span class="icon is-small">
-      <i class="fas fa-user"></i>
-    </span>
-  </button>
+<!-- User icon with dropdown -->
+<div v-if="!isSkipped" class="dropdown is-right" :class="{ 'is-active': isUserMenuOpen }">
+  <div class="dropdown-trigger">
+    <button class="button is-rounded is-light is-small" @click="isUserMenuOpen = !isUserMenuOpen">
+      <span class="icon is-small">
+        <img
+          v-if="currentUser && currentUser.profile_picture"
+          :src="currentUser.profile_picture"
+          alt="User"
+          style="border-radius: 50%; width: 24px; height: 24px;"
+        />
+        <i v-else class="fas fa-user"></i>
+      </span>
+    </button>
+  </div>
+
+<div class="dropdown-menu" role="menu">
+  <div class="dropdown-content">
+
+    <div class="dropdown-item is-flex is-flex-direction-column p-2">
+      <span class="is-size-7 has-text-grey">You're logged in as</span>
+      <div v-if="currentUser" class="dropdown-item is-flex is-flex-direction-column p-2">
+       <span class="is-size-7 has-text-grey">You're logged in as</span>
+       <strong class="is-size-6">{{ currentUser.email }}</strong>
+    </div>
+
+    </div>
+
+    <hr class="dropdown-divider" />
+
+    <a
+      class="dropdown-item has-text-danger has-text-weight-semibold"
+      style="display: flex; align-items: center; gap: 8px;"
+      @click="logout"
+    >
+      <span class="icon is-small"><i class="fas fa-sign-out-alt"></i></span>
+      <span>Log out</span>
+    </a>
+    
+  </div>
 </div>
 
-<!-- Logout button for authenticated users -->
-<div v-if="!isSkipped" class="is-flex is-align-items-center">
-  <button class="button is-rounded is-light is-small has-text-grey" @click="logout" title="Log out">
-    <span class="icon is-small">
-      <i class="fas fa-sign-out-alt"></i>
-    </span>
-  </button>
-</div>
 
+
+
+</div>
 
 </div>
 
