@@ -1,4 +1,11 @@
 from django.shortcuts import render
+from django.conf import settings
+from django.shortcuts import render, redirect
+from django.views import View
+
+from .models import Board, List, Card, Comment
+from .serializers import BoardSerializer, ListSerializer, CardSerializer, CommentSerializer
+from django.contrib.auth.models import User
 
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
@@ -45,13 +52,6 @@ class GoogleLogin(SocialLoginView):
     callback_url = settings.GOOGLE_OAUTH_CALLBACK_URL
     client_class = CustomGoogleOAuth2Client # OAuth2Client
 
-from django.conf import settings
-from django.shortcuts import render, redirect
-from django.views import View
-
-from .models import Board, List, Card, Comment
-from .serializers import BoardSerializer, ListSerializer, CardSerializer, CommentSerializer
-from django.contrib.auth.models import User
 
 # def login_redirect_view(request):
 #      board = Board.objects.filter(is_archived=False).order_by('id').first()

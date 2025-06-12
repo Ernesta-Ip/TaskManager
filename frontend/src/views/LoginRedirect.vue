@@ -19,11 +19,12 @@ export default {
         })
 
         console.log('Google login response:', response.data)
-
-        const accessToken = response.data.access_token
+        const token = response.data.key 
         const boardId = response.data.board_id
+        
+        localStorage.setItem('authToken', token)
 
-        localStorage.setItem('authToken', accessToken)
+        // localStorage.setItem('authToken', accessToken)
          if (boardId) {
           this.$router.push(`/board/${boardId}`)
         } else {
@@ -50,7 +51,4 @@ export default {
     }
   }
 }
-
-
-
 </script>

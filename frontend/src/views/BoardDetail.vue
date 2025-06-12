@@ -645,14 +645,11 @@ memberList.forEach(email => {
 <div class="dropdown-menu" role="menu">
   <div class="dropdown-content">
     <div class="dropdown-item is-flex is-flex-direction-column p-2">
-      <span class="is-size-7 has-text-grey">You're logged in as</span>
     <div v-if="currentUser" class="dropdown-item is-flex is-flex-direction-column p-2">
       <span class="is-size-7 has-text-grey">You're logged in as</span>
-      <strong class="is-size-6">{{ currentUser.first_name }} {{ currentUser.last_name }}</strong>
+      <strong class="is-size-6">{{ currentUser.first_name }} {{ currentUser.last_name }} </strong>
       <span class="is-size-7 has-text-grey">{{ currentUser.email }}</span>
     </div>
-
-
     </div>
 
     <hr class="dropdown-divider" />
