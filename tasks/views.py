@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.views import View
-
+from django.db import models
 from .models import Board, List, Card, Comment
 from .serializers import BoardSerializer, ListSerializer, CardSerializer, CommentSerializer
 from django.contrib.auth.models import User
@@ -19,6 +19,9 @@ from rest_framework import status, viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+
+from allauth.socialaccount.models import SocialAccount
+from .serializers import SocialAccountSerializer
 
 class CustomGoogleOAuth2Client(OAuth2Client):
     def __init__(
@@ -46,6 +49,13 @@ class CustomGoogleOAuth2Client(OAuth2Client):
             basic_auth,
         )
 
+class SocialAccountInfoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        accounts = SocialAccount.objects.filter(user=request.user)
+        serializer = SocialAccountSerializer(accounts, many=True)
+        return Response(serializer.data)
 
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
@@ -59,14 +69,20 @@ class GoogleLogin(SocialLoginView):
 #          return redirect(f'http://localhost:8080/board/{board.id}')
 #      return redirect('http://localhost:8080/dashboard')
 
-
-class BoardViewSet(viewsets.ModelViewSet):
-     queryset = Board.objects.all()
-     serializer_class = BoardSerializer
-     permission_classes = [permissions.AllowAny]
    
-    # def get_queryset(self):
-    #     return Board.objects.all()
+class BoardViewSet(viewsets.ModelViewSet):
+    queryset = Board.objects.all()
+    serializer_class = BoardSerializer
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+    def get_queryset(self):
+        user = self.request.user
+        return Board.objects.filter(
+        models.Q(visibility='public') |
+        models.Q(visibility='internal') |
+        models.Q(created_by=user) |
+        models.Q(members=user)
+        ).distinct()
 
 class ListViewSet(viewsets.ModelViewSet):
     queryset = List.objects.all()

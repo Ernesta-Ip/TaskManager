@@ -8,7 +8,7 @@ class Board(models.Model):
         ('internal', 'Internal'),
         ('public', 'Public'),
     ]
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='boards_created')
     name = models.CharField(max_length=255)
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='private')
     members = models.ManyToManyField(User, related_name='tasks_boards', blank=True)
