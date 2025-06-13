@@ -90,21 +90,13 @@
       async getCurrentUser() {
        try {
          const res = await api.get('/auth/user/');
-         //console.log('User:', res.data);
-
          this.currentUser = res.data;
-
          const res2 = await api.get('/social-accounts/');
-         // console.log('Social account data:', res2.data);
-         // var profile_picture = '';
-         // console.log('User:', this.currentUser);
          for (const provider_entry of res2.data) {
            if(provider_entry.provider === 'google'){
             this.currentUser.profile_picture = provider_entry.extra_data['picture']; 
            }
          }
-         // console.log('User:', this.currentUser);
-         // console.log(profile_picture); 
       } catch (err) {
        console.error('Failed to fetch user:', err);
        this.currentUser = null;
@@ -641,60 +633,33 @@ memberList.forEach(email => {
 
 <!-- User icon with dropdown -->
 <div v-if="!isSkipped" class="dropdown is-right" :class="{ 'is-active': isUserMenuOpen }">
+<div v-if="!isSkipped" class="dropdown is-right" :class="{ 'is-active': isUserMenuOpen }">
   <div class="dropdown-trigger">
-    <button class="button is-rounded is-light is-small" @click="isUserMenuOpen = !isUserMenuOpen">
-      <span class="icon is-small">
+    <button class="button is-light is-rounded" @click="isUserMenuOpen = !isUserMenuOpen">
+      <span class="icon is-medium">
         <img
-          v-if="currentUser && currentUser.profile_picture"
+          v-if="currentUser?.profile_picture"
           :src="currentUser.profile_picture"
           alt="User"
-          style="border-radius: 50%; width: 24px; height: 24px;"
+          style="width: 30px; height: 30px; object-fit: cover; border-radius: 50%;"
         />
-        <i v-else class="fas fa-user"></i>
+        <i v-else class="fas fa-user fa-lg"></i>
       </span>
     </button>
   </div>
-
-<div class="dropdown-menu" role="menu">
-  <div class="dropdown-content">
-    <div class="dropdown-item is-flex is-flex-direction-column p-2">
-    <div v-if="currentUser" class="dropdown-item is-flex is-flex-direction-column p-2">
-      <img
-  v-if="currentUser.profile_picture"
-  :src="currentUser.profile_picture"
-  alt="User avatar"
-  class="is-rounded"
-  style="width: 40px; height: 40px; object-fit: cover;"
->
-
-  <!--<figure class="image is-48x48 mb-2" v-if="currentUser.profile_picture">
-    <img class="is-rounded" :src="currentUser.profile_picture" alt="Profile picture" />
-  </figure>-->
-  <span class="is-size-7 has-text-grey">You're logged in as</span>
-  <strong class="is-size-6">{{ currentUser.first_name }} {{ currentUser.last_name }}</strong>
-  <span class="is-size-7 has-text-grey">{{ currentUser.email }}</span>
 </div>
 
+  <div class="dropdown-menu" role="menu">
+    <div class="dropdown-content">
+      <div v-if="currentUser" class="dropdown-item is-flex is-flex-direction-column p-2">
+        <span class="is-size-7 has-text-grey">You're logged in as</span>
+        <strong class="is-size-6">{{ currentUser.first_name }} {{ currentUser.last_name }}</strong>
+        <span class="is-size-7 has-text-grey">{{ currentUser.email }}</span>
+      </div>
     </div>
-
-    <hr class="dropdown-divider" />
-
-    <a
-      class="dropdown-item has-text-danger has-text-weight-semibold"
-      style="display: flex; align-items: center; gap: 8px;"
-      @click="logout"
-    >
-      <span class="icon is-small"><i class="fas fa-sign-out-alt"></i></span>
-      <span>Log out</span>
-    </a>
-    
   </div>
 </div>
 
-
-
-
-</div>
 
 </div>
 
