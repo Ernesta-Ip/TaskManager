@@ -3,20 +3,40 @@ from .models import Board, List, Card, Comment
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from allauth.socialaccount.models import SocialAccount
+from dj_rest_auth.serializers import UserDetailsSerializer
 
 User = get_user_model()
 
-class UserSerializer(serializers.ModelSerializer):
-    profile_picture = serializers.SerializerMethodField()
+class SocialAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SocialAccount
+        fields = ('provider', 'uid', 'extra_data')
+
+# class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(UserDetailsSerializer):
+    # profile_picture = serializers.SerializerMethodField()
+    social_accounts = SocialAccountSerializer(many=True, read_only=True, source='socialaccount_set')
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile_picture']
+        # fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile_picture', 'social_accounts'] #+ ('social_accounts',)
+        fields = UserDetailsSerializer.Meta.fields + ('social_accounts',)
 
     def get_profile_picture(self, user):
         try:
             social_account = SocialAccount.objects.get(user=user, provider='google')
-            return social_account.extra_data.get('picture')
+            return social_account.extra_data.get('profile_picture')
+        except SocialAccount.DoesNotExist:
+            return None
+        
+    def get_social_account_info(user):
+        try:
+            social_account = SocialAccount.objects.get(user=user)
+            return {
+                'provider': social_account.provider,
+                'uid': social_account.uid,
+                'extra_data': social_account.extra_data,  # includes name, email, picture, etc.
+            }
         except SocialAccount.DoesNotExist:
             return None
 

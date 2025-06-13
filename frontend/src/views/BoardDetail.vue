@@ -89,9 +89,22 @@
 
       async getCurrentUser() {
        try {
-         const res = await api.get('auth/user/');
-         console.log('User:', res.data);
+         const res = await api.get('/auth/user/');
+         //console.log('User:', res.data);
+
          this.currentUser = res.data;
+
+         const res2 = await api.get('/social-accounts/');
+         // console.log('Social account data:', res2.data);
+         // var profile_picture = '';
+         // console.log('User:', this.currentUser);
+         for (const provider_entry of res2.data) {
+           if(provider_entry.provider === 'google'){
+            this.currentUser.profile_picture = provider_entry.extra_data['picture']; 
+           }
+         }
+         // console.log('User:', this.currentUser);
+         // console.log(profile_picture); 
       } catch (err) {
        console.error('Failed to fetch user:', err);
        this.currentUser = null;
@@ -646,10 +659,22 @@ memberList.forEach(email => {
   <div class="dropdown-content">
     <div class="dropdown-item is-flex is-flex-direction-column p-2">
     <div v-if="currentUser" class="dropdown-item is-flex is-flex-direction-column p-2">
-      <span class="is-size-7 has-text-grey">You're logged in as</span>
-      <strong class="is-size-6">{{ currentUser.first_name }} {{ currentUser.last_name }} </strong>
-      <span class="is-size-7 has-text-grey">{{ currentUser.email }}</span>
-    </div>
+      <img
+  v-if="currentUser.profile_picture"
+  :src="currentUser.profile_picture"
+  alt="User avatar"
+  class="is-rounded"
+  style="width: 40px; height: 40px; object-fit: cover;"
+>
+
+  <!--<figure class="image is-48x48 mb-2" v-if="currentUser.profile_picture">
+    <img class="is-rounded" :src="currentUser.profile_picture" alt="Profile picture" />
+  </figure>-->
+  <span class="is-size-7 has-text-grey">You're logged in as</span>
+  <strong class="is-size-6">{{ currentUser.first_name }} {{ currentUser.last_name }}</strong>
+  <span class="is-size-7 has-text-grey">{{ currentUser.email }}</span>
+</div>
+
     </div>
 
     <hr class="dropdown-divider" />
@@ -1190,9 +1215,6 @@ button.is-disabled {
     padding-left: 68px; 
   }
 }
-
-
-
 
 @keyframes fadeIn {
   from {

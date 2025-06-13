@@ -13,6 +13,7 @@ export default {
 
     if (code) {
       try {
+
         const response = await axios.post('http://localhost:8000/api/v1/auth/google/', {
           code,
           redirect_uri: 'http://localhost:8080/login_redirect_view/',

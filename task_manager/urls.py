@@ -10,6 +10,7 @@ from tasks.views import (
     CardViewSet,
     CommentViewSet
 )
+from tasks.views import SocialAccountInfoView
 
 router = DefaultRouter()
 router.register(r'boards', BoardViewSet, basename='boards')
@@ -26,6 +27,7 @@ urlpatterns = [
     re_path(r"^api/v1/auth/pages/", include("allauth.urls")),
     path("api/v1/auth/google/", GoogleLogin.as_view(), name="google_login"),
     path("api/v1/auth/registration/", include("dj_rest_auth.registration.urls")),  # /register/
+    path('api/v1/social-accounts/', SocialAccountInfoView.as_view(), name='social-accounts'),
 #     path("api/v1/auth/google/", include('allauth.socialaccount.providers.google.urls')),
     # path("api/v1/auth/google/callback/", GoogleLoginCallback.as_view(), name="google_login_callback"),
 ]
