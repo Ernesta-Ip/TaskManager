@@ -140,7 +140,7 @@ class GoogleLogin(SocialLoginView):
     def post(self, request, *args, **kwargs):
             response = super().post(request, *args, **kwargs)
             user = request.user
-            board = Board.objects.filter(user=user, is_archived=False).order_by('id').first()
+            board = Board.objects.filter(created_by_id=user.id, is_archived=False).order_by('id').first()
             response.data['board_id'] = board.id if board else None
             return response
 
