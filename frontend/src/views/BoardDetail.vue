@@ -656,9 +656,22 @@ memberList.forEach(email => {
         <strong class="is-size-6">{{ currentUser.first_name }} {{ currentUser.last_name }}</strong>
         <span class="is-size-7 has-text-grey">{{ currentUser.email }}</span>
       </div>
+         <hr class="dropdown-divider" />
+
+    <a
+      class="dropdown-item has-text-danger has-text-weight-semibold"
+      style="display: flex; align-items: center; gap: 8px;"
+      @click="logout"
+    >
+      <span class="icon is-small"><i class="fas fa-sign-out-alt"></i></span>
+      <span>Log out</span>
+    </a>
     </div>
+
   </div>
 </div>
+
+ 
 
 
 </div>
