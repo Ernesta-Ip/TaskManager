@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,20 +11,27 @@
 <body>
     <section class="section">
         <div class="container has-text-centered">
-
+            <div class="login-image mb-3">
+            {% include "pages/undraw_celebration_wtm8.svg" %}
+            </div>
             <h1 class="title is-3 mb-4">Welcome to Task Manager</h1>
             <p class="subtitle is-5">Please sign in with your Google account</p>
 
             <div class="buttons is-centered mt-5">
-                <a href="{{ google_login_url }}" class="button is-primary is-medium">
-                    Sign in with Google
+                <a href="{{ google_login_url }}" class="google-button">
+                    <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
+                    <span>Sign in with Google</span>
                 </a>
-                <button
-                  class="button is-light is-medium"
-                  id="skipLoginButton"
-                >
-                  Skip step
-                </button>
+
+            <button
+            class="skip-button"
+            id="skipLoginButton"
+            onmouseenter="skipWarning.classList.remove('is-hidden')"
+            onmouseleave="skipWarning.classList.add('is-hidden')"
+            >
+            Skip step
+            </button>
+
             </div>
 
             <div class="notification-wrapper mt-4">
@@ -56,10 +65,11 @@
             }
             });
 
-
-       
         const googleLoginUrl = "https://accounts.google.com/o/oauth2/v2/auth?redirect_uri={{ google_callback_uri }}&prompt=consent&response_type=code&client_id={{ google_client_id }}&scope=openid%20email%20profile&access_type=online";
-        document.querySelector('.button.is-primary').href = googleLoginUrl;
+        const googleButton = document.querySelector('.google-button');
+            if (googleButton) {
+                googleButton.href = googleLoginUrl;
+            }
 
     </script>
 
@@ -76,6 +86,18 @@
             min-height: 100vh; /* Use min-height to ensure it covers the viewport */
             text-align: center;
         }
+
+        .login-image {
+            max-width: 300px;       
+            margin: 0 auto;         
+        }
+
+        .login-image svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
 
         .image-center {
             margin: 0 auto 2rem; /* Center the image and add bottom margin */
@@ -104,5 +126,64 @@
         .fade-leave-to {
             opacity: 0;
         }
+
+        .google-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #dcdcdc;
+            border-radius: 4px;
+            background-color: #fff;
+            color: #3c4043;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 10px 16px;
+            text-decoration: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease;
+            }
+
+        .google-button:hover {
+            background-color: #f7f7f7;
+        }
+
+        .google-button img {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            }
+
+        .skip-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #dcdcdc;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+        color: #3c4043;
+        font-size: 16px;
+        font-weight: 500;
+        padding: 10px 16px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        transition: background-color 0.3s ease;
+        height: 46px;
+        cursor: pointer;
+        }
+
+        .skip-button:hover {
+        background-color: #f1f1f1;
+        }
+
+        .login-image {
+    max-width: 360px;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+
     </style>
 </html>

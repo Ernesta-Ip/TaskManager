@@ -87,7 +87,6 @@ class BoardViewSet(viewsets.ModelViewSet):
                 models.Q(visibility='internal') |
                 models.Q(created_by=user) |
                 models.Q(members=user),
-                is_archived=False
             ).distinct()
 
 
