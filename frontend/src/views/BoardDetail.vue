@@ -89,21 +89,20 @@
       },
 
       async getCurrentUser() {
-        try {
-          const res = await api.get('/auth/user/');
-          console.log('User:', res.data);
-          this.currentUser = res.data;
-        } catch (err) {
-          if (err.response && err.response.status === 401) {
-            
-            console.log('User is anonymous (skipped login)');
-            this.currentUser = null;
-          } else {
-            
-            console.error('Failed to fetch user:', err);
-          }
-        }
-      },
+       try {
+         const res = await api.get('/auth/user/');
+         this.currentUser = res.data;
+         const res2 = await api.get('/social-accounts/');
+         for (const provider_entry of res2.data) {
+           if(provider_entry.provider === 'google'){
+            this.currentUser.profile_picture = provider_entry.extra_data['picture']; 
+           }
+         }
+      } catch (err) {
+       console.error('Failed to fetch user:', err);
+       this.currentUser = null;
+      }
+    },
 
 
       visibilityLabel(value) {
@@ -637,19 +636,20 @@ memberList.forEach(email => {
 
 <!-- Dropdown wrapper -->
 <div class="dropdown is-right" :class="{ 'is-active': isUserMenuOpen }">
-  <div class="dropdown-trigger">
-    <button class="button is-light is-rounded" @click="isUserMenuOpen = !isUserMenuOpen">
-      <span class="icon is-medium">
-        <img
-          v-if="!isSkipped && currentUser?.profile_picture"
-          :src="currentUser.profile_picture"
-          alt="User"
-          style="width: 30px; height: 30px; object-fit: cover; border-radius: 50%;"
-        />
-        <i v-else class="fas fa-user fa-lg"></i>
-      </span>
-    </button>
-  </div>
+<div class="dropdown-trigger">
+  <button class="button is-light is-rounded" @click="isUserMenuOpen = !isUserMenuOpen">
+    <span class="icon is-medium">
+      <img
+        v-if="!isSkipped && currentUser?.profile_picture"
+        :src="currentUser.profile_picture"
+        alt="User" class="has-text-grey is-size-7"
+        style="width: 30px; height: 30px; object-fit: cover; border-radius: 50%;"
+      />
+      <span v-else class="has-text-grey-light is-size-7">User</span>
+    </span>
+  </button>
+</div>
+
 
   <!-- Dropdown content -->
   <div class="dropdown-menu" role="menu">

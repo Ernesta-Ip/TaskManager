@@ -91,7 +91,7 @@ import draggable from 'vuedraggable';
     </div>
    <draggable
   v-if="showBoardList"
-  v-model="boards"
+ 
   :list="activeBoards"
   item-key="id"
   group="boards"
@@ -188,7 +188,7 @@ import draggable from 'vuedraggable';
 
 <draggable
   v-if="showArchived"
-  v-model="boards"
+
   :list="archivedBoards"
   item-key="id"
   group="boards"
