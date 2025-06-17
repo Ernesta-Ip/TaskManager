@@ -24,9 +24,14 @@ export default {
         const boardId = response.data.board_id
         
         localStorage.setItem('authToken', token)
+        
+        window.dispatchEvent(new CustomEvent('authToken-localstorage-changed'/*, {
+          detail: {
+            storage: localStorage.getItem('authToken')
+          }
+        }*/));
 
-        // localStorage.setItem('authToken', accessToken)
-         if (boardId) {
+        if (boardId) {
           this.$router.push(`/board/${boardId}`)
         } else {
           this.$router.push('/dashboard')
@@ -36,19 +41,6 @@ export default {
         console.error('Google login failed:', error)
         this.$router.push('/dashboard')
         }
-
-        
-
-        // Save token and redirect
-        //localStorage.setItem('accessToken', response.data.access_token)
-        //this.$router.push('/') // or wherever you want to go after login
-        //#      board = Board.objects.filter(is_archived=False).order_by('id').first()
-        //#      if board:
-        //#          return redirect(f'http://localhost:8080/board/{board.id}')
-        //#      return redirect('http://localhost:8080/dashboard')
-    //   } catch (error) {
-    //     console.error('Google login failed:', error)
-    //   }
     }
   }
 }

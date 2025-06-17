@@ -460,6 +460,10 @@ export default {
     window.addEventListener('mouseup', this.stopResizing);
     document.addEventListener('click', this.handleClickOutside);
     this.isSkipped = localStorage.getItem('skipAuth') === 'true';
+    window.addEventListener('authToken-localstorage-changed', async (event) => {
+      const res = await api.get('boards/');
+      this.boards = res.data;
+    });
   },
 
   beforeUnmount() {
