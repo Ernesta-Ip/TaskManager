@@ -468,6 +468,7 @@ export default {
 
   methods: {
     goToLogin() {
+      localStorage.removeItem('authToken');
       localStorage.removeItem('skipAuth');
       window.location.href = 'http://localhost:8000/';
     },
