@@ -604,6 +604,7 @@ memberList.forEach(email => {
           </div>
         </button>
       </div>
+      </div>
 
       <div class="dropdown-menu" role="menu" @click.self="isVisibilityOpen = false">
         <div class="dropdown-content">
@@ -634,14 +635,13 @@ memberList.forEach(email => {
     </p>
   </div>
 
-<!-- User icon with dropdown -->
-<div v-if="!isSkipped" class="dropdown is-right" :class="{ 'is-active': isUserMenuOpen }">
-<div v-if="!isSkipped" class="dropdown is-right" :class="{ 'is-active': isUserMenuOpen }">
+<!-- Dropdown wrapper -->
+<div class="dropdown is-right" :class="{ 'is-active': isUserMenuOpen }">
   <div class="dropdown-trigger">
     <button class="button is-light is-rounded" @click="isUserMenuOpen = !isUserMenuOpen">
       <span class="icon is-medium">
         <img
-          v-if="currentUser?.profile_picture"
+          v-if="!isSkipped && currentUser?.profile_picture"
           :src="currentUser.profile_picture"
           alt="User"
           style="width: 30px; height: 30px; object-fit: cover; border-radius: 50%;"
@@ -650,34 +650,65 @@ memberList.forEach(email => {
       </span>
     </button>
   </div>
-</div>
 
+  <!-- Dropdown content -->
   <div class="dropdown-menu" role="menu">
     <div class="dropdown-content">
-      <div v-if="currentUser" class="dropdown-item is-flex is-flex-direction-column p-2">
-        <span class="is-size-7 has-text-grey">You're logged in as</span>
-        <strong class="is-size-6">{{ currentUser.first_name }} {{ currentUser.last_name }}</strong>
-        <span class="is-size-7 has-text-grey">{{ currentUser.email }}</span>
-      </div>
-         <hr class="dropdown-divider" />
 
-    <a
-      class="dropdown-item has-text-danger has-text-weight-semibold"
-      style="display: flex; align-items: center; gap: 8px;"
-      @click="logout"
-    >
-      <span class="icon is-small"><i class="fas fa-sign-out-alt"></i></span>
-      <span>Log out</span>
-    </a>
+      <!-- Skipped login view -->
+      <template v-if="isSkipped">
+        <div class="dropdown-item is-flex is-flex-direction-column p-2">
+          <span class="is-size-7 has-text-grey">You're not logged in yet</span>
+        </div>
+        <hr class="dropdown-divider" />
+        <a
+          class="dropdown-item has-text-link has-text-weight-semibold"
+          @click="logout"
+          style="display: flex; align-items: center; gap: 8px;"
+        >
+          <span class="icon is-small"><i class="fas fa-sign-in-alt"></i></span>
+          <span>Log in</span>
+        </a>
+      </template>
+
+      <!-- Logged-in view -->
+      <template v-else-if="currentUser">
+        <div class="dropdown-item is-flex is-flex-direction-column p-2">
+          <span class="is-size-7 has-text-grey">You're logged in as</span>
+          <strong class="is-size-6">{{ currentUser.first_name }} {{ currentUser.last_name }}</strong>
+          <span class="is-size-7 has-text-grey">{{ currentUser.email }}</span>
+        </div>
+        <hr class="dropdown-divider" />
+        <a
+          class="dropdown-item has-text-danger has-text-weight-semibold"
+          @click="logout"
+          style="display: flex; align-items: center; gap: 8px;"
+        >
+          <span class="icon is-small"><i class="fas fa-sign-out-alt"></i></span>
+          <span>Log out</span>
+        </a>
+      </template>
+
+      <!-- Anonymous fallback (not skipped, no currentUser) -->
+      <template v-else>
+        <div class="dropdown-item is-flex is-flex-direction-column p-2">
+          <span class="is-size-7 has-text-grey">You're not logged in yet</span>
+        </div>
+        <hr class="dropdown-divider" />
+        <a
+          class="dropdown-item has-text-link has-text-weight-semibold"
+          @click="logout"
+          style="display: flex; align-items: center; gap: 8px;"
+        >
+          <span class="icon is-small"><i class="fas fa-sign-in-alt"></i></span>
+          <span>Log in</span>
+        </a>
+      </template>
+
     </div>
-
   </div>
 </div>
 
- 
-
-
-</div>
 
       </div>
     </div>
