@@ -75,14 +75,21 @@ class BoardViewSet(viewsets.ModelViewSet):
     serializer_class = BoardSerializer
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+            
     def get_queryset(self):
-        user = self.request.user
-        return Board.objects.filter(
-        models.Q(visibility='public') |
-        models.Q(visibility='internal') |
-        models.Q(created_by=user) |
-        models.Q(members=user)
-        ).distinct()
+            user = self.request.user
+
+            if not user.is_authenticated:
+                return Board.objects.filter(visibility='public', is_archived=False)
+
+            return Board.objects.filter(
+                models.Q(visibility='public') |
+                models.Q(visibility='internal') |
+                models.Q(created_by=user) |
+                models.Q(members=user),
+                is_archived=False
+            ).distinct()
+
 
 class ListViewSet(viewsets.ModelViewSet):
     queryset = List.objects.all()
@@ -144,3 +151,11 @@ class GoogleLogin(SocialLoginView):
             response.data['board_id'] = board.id if board else None
             return response
 
+class SkipAuthRedirectView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        board = Board.objects.filter(visibility='public', is_archived=False).order_by('id').first()
+        if board:
+            return Response({'board_id': board.id})
+        return Response({'board_id': None})

@@ -88,20 +88,22 @@
       },
 
       async getCurrentUser() {
-       try {
-         const res = await api.get('/auth/user/');
-         this.currentUser = res.data;
-         const res2 = await api.get('/social-accounts/');
-         for (const provider_entry of res2.data) {
-           if(provider_entry.provider === 'google'){
-            this.currentUser.profile_picture = provider_entry.extra_data['picture']; 
-           }
-         }
-      } catch (err) {
-       console.error('Failed to fetch user:', err);
-       this.currentUser = null;
-      }
+        try {
+          const res = await api.get('/auth/user/');
+          console.log('User:', res.data);
+          this.currentUser = res.data;
+        } catch (err) {
+          if (err.response && err.response.status === 401) {
+            
+            console.log('User is anonymous (skipped login)');
+            this.currentUser = null;
+          } else {
+            
+            console.error('Failed to fetch user:', err);
+          }
+        }
       },
+
 
       visibilityLabel(value) {
         switch (value) {

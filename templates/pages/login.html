@@ -37,29 +37,30 @@
         const skipLoginButton = document.getElementById('skipLoginButton');
         const skipWarning = document.getElementById('skipWarning');
 
-        skipLoginButton.addEventListener('mouseenter', () => {
-            skipWarning.classList.remove('is-hidden');
-            skipWarning.classList.add('fade-enter-active', 'fade-enter-from');
-            setTimeout(() => {
-                skipWarning.classList.remove('fade-enter-from');
-            }, 10);
-        });
+        //Skip button
+        skipLoginButton.addEventListener('click', async () => {
+            localStorage.removeItem('authToken');
+            localStorage.setItem('skipAuth', 'true');
 
-        skipLoginButton.addEventListener('mouseleave', () => {
-            skipWarning.classList.add('fade-leave-active', 'fade-leave-to');
-            setTimeout(() => {
-                skipWarning.classList.add('is-hidden');
-                skipWarning.classList.remove('fade-leave-to', 'fade-leave-active');
-            }, 100);
-        });
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/skip-auth-redirect/');
+                const data = await response.json();
+                if (data.board_id) {
+                window.location.href = `http://localhost:8080/board/${data.board_id}`;
+                } else {
+                window.location.href = 'http://localhost:8080/dashboard';
+                }
+            } catch (error) {
+                console.error('Failed to redirect:', error);
+                window.location.href = 'http://localhost:8080/dashboard';
+            }
+            });
 
-        // Замените этот URL на ваш актуальный
+
+       
         const googleLoginUrl = "https://accounts.google.com/o/oauth2/v2/auth?redirect_uri={{ google_callback_uri }}&prompt=consent&response_type=code&client_id={{ google_client_id }}&scope=openid%20email%20profile&access_type=online";
         document.querySelector('.button.is-primary').href = googleLoginUrl;
 
-        skipLoginButton.addEventListener('click', () => {
-            console.log('Skipping login. You would typically redirect or perform an API call here.');
-        });
     </script>
 
     <style>

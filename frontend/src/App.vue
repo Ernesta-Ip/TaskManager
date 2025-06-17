@@ -414,6 +414,7 @@ export default {
       sidebarWidth: 240,
       isResizing: false,
       isSkipped: localStorage.getItem('skipAuth') === 'true',
+      currentUser: null,
     };
   },
 
@@ -452,7 +453,7 @@ export default {
     }
   },
 
-  mounted() {
+  async mounted() {
     this.updateSidebarVisibility();
     window.addEventListener('resize', this.updateSidebarVisibility);
     window.addEventListener('mousemove', this.resizeSidebar);
