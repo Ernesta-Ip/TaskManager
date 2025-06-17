@@ -179,6 +179,13 @@
         if (menuEl && !menuEl.contains(event.target)) {
           this.menuOpenListId = null;
         }
+        if (
+          this.isVisibilityOpen &&
+          this.$refs.visibilityDropdown &&
+          !this.$refs.visibilityDropdown.contains(event.target)
+        ) {
+          this.isVisibilityOpen = false;
+        }
       },
 
     renameBoard() {
@@ -584,10 +591,10 @@ memberList.forEach(email => {
   <!-- Visibility -->
   <div class="mr-4">
     <label class="label is-size-7 has-text-grey-dark mb-1">Visibility</label>
-    <div class="dropdown" :class="{ 'is-active': isVisibilityOpen }">
+    <div class="dropdown" :class="{ 'is-active': isVisibilityOpen }" ref="visibilityDropdown">
       <div class="dropdown-trigger">
         <button
-          class="invisible-button"
+          
           @click="isVisibilityOpen = !isVisibilityOpen"
           aria-haspopup="true"
           aria-expanded="isVisibilityOpen"
@@ -603,8 +610,7 @@ memberList.forEach(email => {
           </div>
         </button>
       </div>
-      </div>
-
+      
       <div class="dropdown-menu" role="menu" @click.self="isVisibilityOpen = false">
         <div class="dropdown-content">
           <a v-if="!isSkipped" 
@@ -624,6 +630,7 @@ memberList.forEach(email => {
         </div>
       </div>
     </div>
+  </div>
   </div>
 
   <!-- Members -->
