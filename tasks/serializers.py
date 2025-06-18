@@ -12,9 +12,7 @@ class SocialAccountSerializer(serializers.ModelSerializer):
         model = SocialAccount
         fields = ('provider', 'uid', 'extra_data')
 
-# class UserSerializer(serializers.ModelSerializer):
 class UserSerializer(UserDetailsSerializer):
-    # profile_picture = serializers.SerializerMethodField()
     social_accounts = SocialAccountSerializer(many=True, read_only=True, source='socialaccount_set')
 
     class Meta:
@@ -79,5 +77,8 @@ class BoardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Board
-        fields = ['id', 'name', 'visibility', 'members', 'created_by', 'created_at', 'lists', 'is_archived']
+        fields = [
+            'id', 'name', 'visibility', 'members', 'created_by',
+            'created_at', 'lists', 'is_archived', 'order'
+        ]
         read_only_fields = ['created_by']

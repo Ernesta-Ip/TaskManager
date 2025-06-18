@@ -96,7 +96,7 @@ import draggable from 'vuedraggable';
   item-key="id"
   group="boards"
   class="board-list"
-  @end="onBoardDrop"
+  @change="onBoardDrop"
 >
   <template #item="{ element: board }">
     <li
@@ -419,24 +419,25 @@ export default {
   },
 
   computed: {
-    archivedBoards() {
-      if (this.isSkipped) {
-        return this.boards.filter(b => b.is_archived && b.visibility === 'public');
-      }
-      return this.boards.filter(b => b.is_archived);
-    },
     activeBoards() {
-      if (this.isSkipped) {
-        return this.boards.filter(b => !b.is_archived && b.visibility === 'public');
-      }
-      return this.boards.filter(b => !b.is_archived);
-    }
+        const filtered = this.isSkipped
+          ? this.boards.filter(b => !b.is_archived && b.visibility === 'public')
+          : this.boards.filter(b => !b.is_archived);
+        return filtered.sort((a, b) => a.order - b.order);
+      },
+
+    archivedBoards() {
+        const filtered = this.isSkipped
+          ? this.boards.filter(b => b.is_archived && b.visibility === 'public')
+          : this.boards.filter(b => b.is_archived);
+        return filtered.sort((a, b) => a.order - b.order);
+    },
   },
 
   async created() {
     try {
       const res = await api.get('boards/');
-      this.boards = res.data;
+      this.boards = res.data.sort((a, b) => a.order - b.order);
 
       const currentId = this.$route.params.id;
       if (currentId) {
@@ -644,18 +645,29 @@ export default {
       }
     },
     
-    async onBoardDrop() {
+async onBoardDrop(evt) {
   try {
-    for (let i = 0; i < this.boards.length; i++) {
-      const board = this.boards[i];
+    const isArchived = evt.from?.classList?.contains('archived');
+    const updatedList = isArchived ? this.archivedBoards : this.activeBoards;
+
+    for (let i = 0; i < updatedList.length; i++) {
+      const board = updatedList[i];
       await api.patch(`boards/${board.id}/`, {
         order: i,
       });
+
+      // 
+      const index = this.boards.findIndex(b => b.id === board.id);
+      if (index !== -1) {
+        this.boards[index].order = i;
+      }
     }
   } catch (err) {
     console.error('Failed to update board order:', err);
   }
 },
+
+
 
   },
 };

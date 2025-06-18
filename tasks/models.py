@@ -13,6 +13,7 @@ class Board(models.Model):
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='private')
     members = models.ManyToManyField(User, related_name='tasks_boards', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    order = models.PositiveIntegerField(default=0)
     is_archived = models.BooleanField(default=False)
     def __str__(self):
         return self.name

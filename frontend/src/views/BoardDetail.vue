@@ -11,6 +11,7 @@
         document.addEventListener('click', this.handleClickOutside);
         document.addEventListener('click', this.handleClickOutsideInput);
         document.addEventListener('click', this.handleClickOutsideUserMenu);
+        document.addEventListener('keydown', this.handleEscapeKey);
         this.getCurrentUser();
       },
     
@@ -18,6 +19,7 @@
         document.removeEventListener('click', this.handleClickOutside);
         document.removeEventListener('click', this.handleClickOutsideInput);
         document.removeEventListener('click', this.handleClickOutsideUserMenu);
+        document.removeEventListener('keydown', this.handleEscapeKey);
       },
 
     data() {
@@ -80,6 +82,15 @@
       },
 
     methods: {
+
+    handleEscapeKey(event) {
+        if (event.key === 'Escape' && this.activeCard) {
+          this.closeModal();
+        }
+      },
+      closeModal() {
+        this.activeCard = null;
+      },
 
       logout() {
         localStorage.removeItem('authToken');
@@ -243,22 +254,21 @@
         }
       },
 
-        async fetchBoard(boardId) {
-          try {
-            const res = await api.get(`boards/${boardId}/`);
-            console.log('Board data from API:', res.data);
-            this.board = {
-              ...res.data,
-              lists: res.data.lists || []
-            };
-            for (const list of this.board.lists) {
-              list.cards = list.cards || [];
-            }
-          } catch (err) {
-            console.error('Failed to load board:', err);
-          }
-        },
-
+async fetchBoard(boardId) {
+  try {
+    const res = await api.get(`boards/${boardId}/`);
+    console.log('Board data from API:', res.data);
+    this.board = {
+      ...res.data,
+      lists: (res.data.lists || []).sort((a, b) => a.order - b.order),
+    };
+    for (const list of this.board.lists) {
+      list.cards = (list.cards || []).sort((a, b) => a.order - b.order);
+    }
+  } catch (err) {
+    console.error('Failed to load board:', err);
+  }
+},
     
     async addList() {
         try {
@@ -291,25 +301,43 @@
           console.error('Error adding card:', err);
         }
       },
-      async onCardDrop() {
-        for (const list of this.board.lists) {
-          for (let i = 0; i < list.cards.length; i++) {
-            const card = list.cards[i];
-            await api.patch(`cards/${card.id}/`, {
-              order: i,
-              list: list.id,
-            });
+
+      async onCardDrop(evt) {
+          const movedCardId = evt?.added?.element?.id || evt?.moved?.element?.id;
+          if (!movedCardId) return;
+
+          const targetList = this.board.lists.find(list =>
+            list.cards.some(card => card.id === movedCardId)
+          );
+
+          if (!targetList) return;
+
+          
+          for (let i = 0; i < targetList.cards.length; i++) {
+            const card = targetList.cards[i];
+            try {
+              await api.patch(`cards/${card.id}/`, {
+                order: i,
+                list: targetList.id,
+              });
+            } catch (err) {
+              console.error(`Failed to update card ${card.id}:`, err);
+            }
           }
-        }
-      },
+        },
+
+
       async onListDrop() {
-        for (let i = 0; i < this.board.lists.length; i++) {
-          const list = this.board.lists[i];
-          await api.patch(`lists/${list.id}/`, {
-            order: i,
-          });
-        }
-      },
+          for (let i = 0; i < this.board.lists.length; i++) {
+            const list = this.board.lists[i];
+            try {
+              await api.patch(`lists/${list.id}/`, { order: i });
+            } catch (err) {
+              console.error(`Failed to update list ${list.id} order:`, err);
+            }
+          }
+        },
+
 
       async updateBoardVisibility() {
           try {
@@ -633,7 +661,7 @@ memberList.forEach(email => {
   </div>
   </div>
 
-  <!-- Members -->
+<!-- Members -->
   <div>
     <label class="label is-size-7 has-text-grey-dark mb-1">Members</label>
     <p class="is-size-7 has-text-grey mt-3">
@@ -657,12 +685,11 @@ memberList.forEach(email => {
   </button>
 </div>
 
-
   <!-- Dropdown content -->
   <div class="dropdown-menu" role="menu">
     <div class="dropdown-content">
 
-      <!-- Skipped login view -->
+  <!-- Skipped login view -->
       <template v-if="isSkipped">
         <div class="dropdown-item is-flex is-flex-direction-column p-2">
           <span class="is-size-7 has-text-grey">You're not logged in yet</span>
@@ -678,7 +705,7 @@ memberList.forEach(email => {
         </a>
       </template>
 
-      <!-- Logged-in view -->
+  <!-- Logged-in view -->
       <template v-else-if="currentUser">
         <div class="dropdown-item is-flex is-flex-direction-column p-2">
           <span class="is-size-7 has-text-grey">You're logged in as</span>
@@ -755,7 +782,7 @@ memberList.forEach(email => {
         @end="onListDrop"
       >
 
-      <!-- Lists -->  
+  <!-- Lists -->  
       <template #item="{ element: list }">
           <div>
              <div class="box p-3" :key="list.id">
@@ -806,7 +833,7 @@ memberList.forEach(email => {
                 v-model="list.cards"
                 group="cards"
                 item-key="id"
-                @end="onCardDrop"
+                @change="onCardDrop"
               >
                 <template #item="{ element: card }">
                 <li class="card-item">
@@ -814,6 +841,7 @@ memberList.forEach(email => {
                   {{ card.title }}
                 </span>
                 <span class="card-icons">
+
 <!-- Edit button -->
 <button
   class="button is-small is-white has-text-grey-dark"
@@ -900,8 +928,7 @@ memberList.forEach(email => {
   
   
   
-      <!-- Modal window for card -->
-       
+  <!-- Modal window for card -->
   <div v-if="activeCard" class="modal is-active">
   <div class="modal-background" @click="closeModal"></div>
 
@@ -919,7 +946,7 @@ memberList.forEach(email => {
       <button class="delete" aria-label="close" @click="closeModal"></button>
     </header>
 
-    <section class="modal-card-body">
+  <section class="modal-card-body">
       <div class="field">
         <label class="label">In list</label>
         <div class="control">
@@ -998,7 +1025,8 @@ memberList.forEach(email => {
     </footer>
   </div>
 </div>
-      <!-- End of modal window for card -->
+
+  <!-- End of modal window for card -->
 
       <!-- Delete Card Confirmation Modal -->
       <div class="modal" :class="{ 'is-active': modalDeleteCard.isOpen }">
