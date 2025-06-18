@@ -79,10 +79,7 @@ ACCOUNT_EMAIL_VERIFICATION = "none" # Do not require email confirmation
 REST_USE_JWT = False
 REST_SESSION_LOGIN = False 
 
-# django-allauth (social)
-# Authenticate if local account with this email address already exists
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
-# Connect local account and social account if local account with that email address already exists
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
@@ -101,7 +98,6 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 GOOGLE_OAUTH_CLIENT_ID = '378522459949-8diehekmesld2rh39n9u17kmjh7lels7.apps.googleusercontent.com'
 GOOGLE_OAUTH_CLIENT_SECRET = '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'
-# GOOGLE_OAUTH_CALLBACK_URL="http://localhost:8000/api/v1/auth/google/callback/"
 GOOGLE_OAUTH_CALLBACK_URL="http://localhost:8080/login_redirect_view"
 
 ROOT_URLCONF = 'task_manager.urls'
