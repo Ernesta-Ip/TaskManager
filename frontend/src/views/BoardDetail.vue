@@ -239,7 +239,7 @@
         alert('Could not delete list.');
       }
     },
-
+    
     async confirmDeleteCard() {
         try {
           await api.delete(`cards/${this.modalDeleteCard.cardId}/`);
@@ -254,6 +254,36 @@
           alert('Could not delete card.');
         }
       },
+
+async downloadFile(filename) {
+  const token = localStorage.getItem('authToken'); // adjust if using cookies or other auth
+  let shortname = filename.split('/').pop();
+  console.log(shortname);
+  
+  try {
+    const response = await fetch(`http://localhost:8000/api/v1/download/${shortname}/`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Token ${token}`,  // Or `Bearer ${token}` if using JWT
+      },
+    });
+
+    if (!response.ok) throw new Error('Download failed');
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = shortname;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Error downloading file:', err);
+  }
+},
 
 async fetchBoard(boardId) {
   try {
@@ -420,15 +450,6 @@ async fetchBoard(boardId) {
         this.activeCard.attachment = file;
       },
 
-      fileUrl(path) {
-        if (!path) return '';
-        if (typeof path === 'string') {
-          if (path.startsWith('http')) return path;
-          return `http://localhost:8000${path}`;
-        }
-        return '';
-      },
-
         getAttachmentName(attachment) {
           if (!attachment) return '';
           if (typeof attachment === 'string') {
@@ -491,6 +512,8 @@ memberList.forEach(email => {
     const res = await api.patch(`cards/${this.activeCard.id}/`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    // console.log("kuku")
+    // console.log(res)
     for (const list of this.board.lists) {
       const idx = list.cards.findIndex(c => c.id === res.data.id);
       if (idx !== -1) {
@@ -980,7 +1003,7 @@ memberList.forEach(email => {
         </div>
           <div v-if="activeCard.attachment" class="mt-2">
             <a
-              :href="fileUrl(activeCard.attachment)"
+              @click.prevent="downloadFile(activeCard.attachment)"
               :download="getAttachmentName(activeCard.attachment)"  
               target="_blank"
               rel="noopener noreferrer"

@@ -23,6 +23,9 @@ from rest_framework.permissions import IsAuthenticated
 from allauth.socialaccount.models import SocialAccount
 from .serializers import SocialAccountSerializer
 
+from django.http import FileResponse, Http404
+import os
+
 class CustomGoogleOAuth2Client(OAuth2Client):
     def __init__(
         self,
@@ -71,21 +74,20 @@ class GoogleLogin(SocialLoginView):
 
    
 class BoardViewSet(viewsets.ModelViewSet):
-    queryset = Board.objects.all()
+    # queryset = Board.objects.all()
     serializer_class = BoardSerializer
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        serializer.save(created_by=self.request.user.id)
             
     def get_queryset(self):
             user = self.request.user
-
             if not user.is_authenticated:
                 return Board.objects.filter(visibility='public', is_archived=False)
 
             return Board.objects.filter(
                 models.Q(visibility='public') |
                 models.Q(visibility='internal') |
-                models.Q(created_by=user) |
+                models.Q(created_by=user.id) |
                 models.Q(members=user),
             ).distinct()
 
@@ -157,3 +159,12 @@ class SkipAuthRedirectView(APIView):
         if board:
             return Response({'board_id': board.id})
         return Response({'board_id': None})
+
+class SecureFileDownloadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, filename):
+        file_path = os.path.join(settings.MEDIA_ROOT, 'attachments', filename)
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True)
+        raise Http404("File does not exist")
