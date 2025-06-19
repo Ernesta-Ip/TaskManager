@@ -120,7 +120,6 @@ class GoogleLoginCallback(APIView):
         if code is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        # TODO: Remember to replace the localhost:8001 with the actual domain name before deployment
         token_endpoint_url = urljoin("http://localhost:8000", reverse("google_login"))
         print("token_endpoint_url", token_endpoint_url)
         response = requests.post(url=token_endpoint_url, data={"code": code})

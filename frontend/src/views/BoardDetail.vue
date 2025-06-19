@@ -416,15 +416,15 @@ async fetchBoard(boardId) {
       },
 
       handleAttachment(event) {
-  const file = event.target.files[0];
-  this.activeCard.attachment = file;
-},
+        const file = event.target.files[0];
+        this.activeCard.attachment = file;
+      },
 
       fileUrl(path) {
         if (!path) return '';
         if (typeof path === 'string') {
           if (path.startsWith('http')) return path;
-          return `http://localhost:8001${path}`;
+          return `http://localhost:8000${path}`;
         }
         return '';
       },
