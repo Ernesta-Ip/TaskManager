@@ -88,6 +88,7 @@
           this.closeModal();
         }
       },
+
       closeModal() {
         this.activeCard = null;
       },
@@ -369,9 +370,7 @@ async fetchBoard(boardId) {
 
       },
 
-      closeModal() {
-        this.activeCard = null;
-      },
+
       
       async updateCard() {
         try {
