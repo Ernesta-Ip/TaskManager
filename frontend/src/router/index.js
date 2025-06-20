@@ -28,16 +28,4 @@ const router = createRouter({
   routes,
 });
 
-// router.beforeEach((to, from, next) => {
-//   const isAuthenticated = document.cookie.includes('sessionid');
-//   const isSkipped = localStorage.getItem('skipAuth') === 'true';
-
-//   if (!isAuthenticated && !isSkipped && to.name !== 'Login') {
-//     next({ name: 'Login' });
-//   } else {
-//     next();
-//   }
-// }
-// );
-
 export default router;

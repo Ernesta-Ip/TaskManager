@@ -63,7 +63,6 @@
         },
 
         isVisibilityOpen: false,
-        isSkipped: localStorage.getItem('skipAuth') === 'true',
       };
     },
     
@@ -95,27 +94,35 @@
 
       logout() {
         localStorage.removeItem('authToken');
-        localStorage.removeItem('skipAuth');
         document.cookie = 'sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         window.location.href = 'http://localhost:8000/';
       },
 
       async getCurrentUser() {
-       try {
-         const res = await api.get('/auth/user/');
-         this.currentUser = res.data;
-         const res2 = await api.get('/social-accounts/');
-         for (const provider_entry of res2.data) {
-           if(provider_entry.provider === 'google'){
-            this.currentUser.profile_picture = provider_entry.extra_data['picture']; 
-           }
-         }
-      } catch (err) {
-       console.error('Failed to fetch user:', err);
-       this.currentUser = null;
-      }
-    },
+        console.log("kuku1");
+        if(localStorage.getItem('authToken')){
+          console.log("kuku2");
+          const res = await api.get('/auth/user/');
+          console.log("kuku3");
+          this.currentUser = res.data;
+          console.log(this.currentUser);
+          const res2 = await api.get('/social-accounts/');
+          console.log(res2);
 
+          for (const provider_entry of res2.data) {
+            console.log("kuku4");
+            if(provider_entry.provider === 'google'){
+              console.log("kuku5");
+              this.currentUser.profile_picture = provider_entry.extra_data['picture']; 
+              console.log(this.currentUser.profile_picture);
+              console.log(this.isSkipped);
+            }
+          }
+         }
+         else{
+          this.currentUser = null;
+         }
+    },
 
       visibilityLabel(value) {
         switch (value) {

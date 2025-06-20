@@ -382,6 +382,8 @@ import draggable from 'vuedraggable';
 import { api } from '@/api';
 import { useRouter } from 'vue-router';
 import draggable from 'vuedraggable';
+// import { ref, provide } from 'vue'
+// provide('currentUser', null)
 
 export default {
    setup() {
@@ -413,7 +415,7 @@ export default {
       newBoardMembers: '',
       sidebarWidth: 240,
       isResizing: false,
-      isSkipped: localStorage.getItem('skipAuth') === 'true',
+      isSkipped: this.currentUser == null,
       currentUser: null,
     };
   },
@@ -460,7 +462,6 @@ export default {
     window.addEventListener('mousemove', this.resizeSidebar);
     window.addEventListener('mouseup', this.stopResizing);
     document.addEventListener('click', this.handleClickOutside);
-    this.isSkipped = localStorage.getItem('skipAuth') === 'true';
     window.addEventListener('authToken-localstorage-changed', async () => {
       const res = await api.get('boards/');
       this.boards = res.data;
@@ -474,7 +475,6 @@ export default {
   methods: {
     goToLogin() {
       localStorage.removeItem('authToken');
-      localStorage.removeItem('skipAuth');
       window.location.href = 'http://localhost:8000/';
     },
 
