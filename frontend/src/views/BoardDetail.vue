@@ -2,19 +2,32 @@
   import { api } from '@/api';
   import draggable from 'vuedraggable';
   import 'bulma/css/bulma.min.css';
+  import { inject } from 'vue';
 
   export default {
     name: 'BoardDetailView',
+    setup() {
+      const currentUser = inject('currentUser');
+      return { currentUser };
+    },
     components: { draggable },
-
-    mounted() {
+    async mounted() {
         document.addEventListener('click', this.handleClickOutside);
         document.addEventListener('click', this.handleClickOutsideInput);
         document.addEventListener('click', this.handleClickOutsideUserMenu);
         document.addEventListener('keydown', this.handleEscapeKey);
-        this.getCurrentUser();
+        
+        window.addEventListener('authToken-localstorage-changed', async () => {
+          console.log("board detail received event");
+        });
+
+        // await this.getCurrentUser();
       },
-    
+    computed: {
+      isSkipped(){
+        return this.currentUser == null
+      }
+    },
     beforeUnmount() {
         document.removeEventListener('click', this.handleClickOutside);
         document.removeEventListener('click', this.handleClickOutsideInput);
@@ -24,7 +37,6 @@
 
     data() {
       return {
-        currentUser: null,
         isUserMenuOpen: false,
         activeCard: null,
         hoverCard: null,
@@ -63,11 +75,11 @@
         },
 
         isVisibilityOpen: false,
+        profile_picture: null,
       };
     },
     
     created() {
-      console.log('Route param:', this.$route.params.id);
       this.fetchBoard(this.$route.params.id);
     },
 
@@ -77,11 +89,44 @@
           handler(newId) {
             this.fetchBoard(newId);
           }
+        },
+        async currentUser(newValue){
+          if(newValue){
+            const res2 = await api.get('/social-accounts/');
+            console.log("App.vue, res2: ", res2);
+            for (const provider_entry of res2.data) {
+              if(provider_entry.provider === 'google'){
+                this.profile_picture = provider_entry.extra_data['picture']; 
+                console.log("BoardDetail.vue, profile_picture: ", this.profile_picture);
+              }
+            }
+          } else {
+            this.profile_picture = null; 
+          }
+
         }
       },
 
     methods: {
+      /*
+      async getCurrentUser() {
+        if(localStorage.getItem('authToken')){
+          const res = await api.get('/auth/user/');
+          this.currentUser = res.data;
+          const res2 = await api.get('/social-accounts/');
+          console.log("BoardDetail.vue, res2: ", res2);
 
+          for (const provider_entry of res2.data) {
+            if(provider_entry.provider === 'google'){
+              this.currentUser.profile_picture = provider_entry.extra_data['picture']; 
+            }
+          }
+          }
+          else{
+            this.currentUser = null;
+          }
+      },
+      */
     handleEscapeKey(event) {
         if (event.key === 'Escape' && this.activeCard) {
           this.closeModal();
@@ -97,32 +142,6 @@
         document.cookie = 'sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         window.location.href = 'http://localhost:8000/';
       },
-
-      async getCurrentUser() {
-        console.log("kuku1");
-        if(localStorage.getItem('authToken')){
-          console.log("kuku2");
-          const res = await api.get('/auth/user/');
-          console.log("kuku3");
-          this.currentUser = res.data;
-          console.log(this.currentUser);
-          const res2 = await api.get('/social-accounts/');
-          console.log(res2);
-
-          for (const provider_entry of res2.data) {
-            console.log("kuku4");
-            if(provider_entry.provider === 'google'){
-              console.log("kuku5");
-              this.currentUser.profile_picture = provider_entry.extra_data['picture']; 
-              console.log(this.currentUser.profile_picture);
-              console.log(this.isSkipped);
-            }
-          }
-         }
-         else{
-          this.currentUser = null;
-         }
-    },
 
       visibilityLabel(value) {
         switch (value) {
@@ -265,9 +284,9 @@
 async downloadFile(filename) {
   const token = localStorage.getItem('authToken'); // adjust if using cookies or other auth
   let shortname = filename.split('/').pop();
-  console.log(shortname);
   
   try {
+    // TODO: here, not fetch should be used, but api.get... 
     const response = await fetch(`http://localhost:8000/api/v1/download/${shortname}/`, {
       method: 'GET',
       headers: {
@@ -295,7 +314,6 @@ async downloadFile(filename) {
 async fetchBoard(boardId) {
   try {
     const res = await api.get(`boards/${boardId}/`);
-    console.log('Board data from API:', res.data);
     this.board = {
       ...res.data,
       lists: (res.data.lists || []).sort((a, b) => a.order - b.order),
@@ -519,8 +537,6 @@ memberList.forEach(email => {
     const res = await api.patch(`cards/${this.activeCard.id}/`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    // console.log("kuku")
-    // console.log(res)
     for (const list of this.board.lists) {
       const idx = list.cards.findIndex(c => c.id === res.data.id);
       if (idx !== -1) {
@@ -704,11 +720,11 @@ memberList.forEach(email => {
   <button class="button is-light is-rounded" @click="isUserMenuOpen = !isUserMenuOpen">
     <span class="icon is-medium">
       <img
-        v-if="!isSkipped && currentUser?.profile_picture"
-        :src="currentUser.profile_picture"
+        v-if="this.profile_picture"
+        :src="this.profile_picture"
         alt="User" class="has-text-grey is-size-7"
         style="width: 30px; height: 30px; object-fit: cover; border-radius: 50%;"
-      />
+      /><!--TODO: a check for isSkipped here is not needed, because the profile picture is either null or already loaded-->
       <span v-else class="has-text-grey-light is-size-7">User</span>
     </span>
   </button>

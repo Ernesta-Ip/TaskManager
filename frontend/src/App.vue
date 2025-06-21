@@ -34,8 +34,8 @@ import draggable from 'vuedraggable';
             <div class="select is-fullwidth">
             <select v-model="newBoardVisibility">
               <option value="public">Public</option>
-              <option v-if="!isSkipped" value="internal">Internal</option>
-              <option v-if="!isSkipped" value="private">Private</option>
+              <option v-if="this.currentUser" value="internal">Internal</option>
+              <option v-if="this.currentUser" value="private">Private</option>
             </select>
             </div>
           </div>
@@ -71,17 +71,17 @@ import draggable from 'vuedraggable';
     <!-- Boards -->
 
     <div class="sidebar-header mb-3" @click="toggleBoardList">
-<div class="px-3 py-2">
-  <button
-    class="button is-small is-light is-fullwidth"
-    @click="goToLogin"
-  >
-    <span class="icon is-small">
-      <i class="fas fa-arrow-left"></i>
-    </span>
-    <span>Back to Login</span>
-  </button>
-</div>
+    <div class="px-3 py-2">
+        <button
+          class="button is-small is-light is-fullwidth"
+          @click="goToLogin"
+        >
+          <span class="icon is-small">
+            <i class="fas fa-arrow-left"></i>
+          </span>
+          <span>Back to Login</span>
+        </button>
+    </div>
 
     <span class="menu-label">Boards</span>
       <span class="icon">
@@ -127,9 +127,9 @@ import draggable from 'vuedraggable';
             <div class="dropdown-content">
               <a
                 class="dropdown-item is-size-8 has-text-grey-dark has-text-weight-normal dropdown-action"
-                :class="{ 'is-disabled': isSkipped }"
-                :disabled="isSkipped"
-                @click="!isSkipped && openRenameModal(board)"
+                :class="{ 'is-disabled': !this.currentUser }"
+                :disabled="!this.currentUser"
+                @click="this.currentUser && openRenameModal(board)"
               >
                 <span class="icon is-small mr-2"><i class="fas fa-pen fa-sm"></i></span>
                 <span>Rename</span>
@@ -138,8 +138,8 @@ import draggable from 'vuedraggable';
               <a
                 v-if="!board.is_archived"
                 class="dropdown-item is-size-8 has-text-grey-dark has-text-weight-normal dropdown-action"
-                :disabled="isSkipped"
-                @click="!isSkipped && openArchiveModal(board)"
+                :disabled="!this.currentUser"
+                @click="this.currentUser && openArchiveModal(board)"
                 
               >
                 <span class="icon is-small mr-2"><i class="fas fa-box fa-sm"></i></span>
@@ -149,8 +149,8 @@ import draggable from 'vuedraggable';
               <a
                 v-if="board.is_archived"
                 class="dropdown-item is-size-8 has-text-grey-dark has-text-weight-normal dropdown-action"
-                :disabled="isSkipped"
-                @click="!isSkipped && openRestoreBoard(board)"
+                :disabled="!this.currentUser"
+                @click="this.currentUser && openRestoreBoard(board)"
                 
               >
                 <span class="icon is-small mr-2"><i class="fas fa-undo fa-sm"></i></span>
@@ -159,8 +159,8 @@ import draggable from 'vuedraggable';
 
               <a
                 class="dropdown-item is-size-8 has-text-danger dropdown-action delete-action"
-                :disabled="isSkipped"
-                @click="!isSkipped && openDeleteModal(board)"
+                :disabled="!this.currentUser"
+                @click="this.currentUser && openDeleteModal(board)"
               >
                 <span class="icon is-small mr-2"><i class="fas fa-trash fa-sm"></i></span>
                 <span>Delete</span>
@@ -294,8 +294,8 @@ import draggable from 'vuedraggable';
                 <div class="select is-fullwidth">
                   <select v-model="newBoardVisibility">
                     <option value="public">Public</option>
-                    <option v-if="!isSkipped" value="internal">Internal</option>
-                    <option v-if="!isSkipped" value="private">Private</option>
+                    <option v-if="this.currentUser" value="internal">Internal</option>
+                    <option v-if="this.currentUser" value="private">Private</option>
                   </select>
                 </div>
               </div>
@@ -382,14 +382,9 @@ import draggable from 'vuedraggable';
 import { api } from '@/api';
 import { useRouter } from 'vue-router';
 import draggable from 'vuedraggable';
-// import { ref, provide } from 'vue'
-// provide('currentUser', null)
+import { ref, provide } from 'vue';
 
 export default {
-   setup() {
-    const router = useRouter();
-    return { router };
-  },
   name: 'App',
   components: {
     draggable,
@@ -415,39 +410,49 @@ export default {
       newBoardMembers: '',
       sidebarWidth: 240,
       isResizing: false,
-      isSkipped: this.currentUser == null,
-      currentUser: null,
+      //currentUser: null,
     };
   },
-
+  /*
+  provide() {
+    return {
+      currentUser: this.currentUser,
+    };
+  },
+  */
+  setup() {
+    const currentUser = ref(null);
+    provide('currentUser', currentUser);
+    const router = useRouter();
+    return { currentUser, router }; 
+  },
   computed: {
     activeBoards() {
-        const filtered = this.isSkipped
-          ? this.boards.filter(b => !b.is_archived && b.visibility === 'public')
-          : this.boards.filter(b => !b.is_archived);
-        return filtered.sort((a, b) => a.order - b.order);
+        console.log("App.vue, activeBoards:", this.currentUser);
+        /* 
+        TODO: the check for authentication is not needed because it was done on the stage of loading boards
+        TODO: also, because the check for authentication was done on the stage of loading boards, the check for publicity of a board
+        TODO: is also not needed, as only appropriate boards were loaded, compare archivedBoards
+        return this.currentUser
+          ? this.boards.filter(b => !b.is_archived)
+          : this.boards.filter(b => !b.is_archived && b.visibility === 'public')
+          .sort((a, b) => a.order - b.order);
+        */
+       return this.boards.filter(b => !b.is_archived);
       },
 
     archivedBoards() {
-        const filtered = this.isSkipped
-          ? this.boards.filter(b => b.is_archived && b.visibility === 'public')
-          : this.boards.filter(b => b.is_archived);
-        return filtered.sort((a, b) => a.order - b.order);
+        console.log("App.vue, archivedBoards:", this.currentUser);
+        /*
+        TODO: the check for authentication is not needed because it was done on the stage of loading boards
+        TODO: also, because the check for authentication was done on the stage of loading boards, the check for publicity of a board
+        TODO: is also not needed, as only appropriate boards were loaded, compare activeBoards.
+        */
+        return this.currentUser
+          ? this.boards.filter(b => b.is_archived)
+          : this.boards.filter(b => b.is_archived && b.visibility === 'public')
+          .sort((a, b) => a.order - b.order);
     },
-  },
-
-  async created() {
-    try {
-      const res = await api.get('boards/');
-      this.boards = res.data.sort((a, b) => a.order - b.order);
-
-      const currentId = this.$route.params.id;
-      if (currentId) {
-        this.selectedBoardId = currentId;
-      }
-    } catch (err) {
-      console.error('Failed to load boards:', err);
-    }
   },
 
   watch: {
@@ -462,9 +467,33 @@ export default {
     window.addEventListener('mousemove', this.resizeSidebar);
     window.addEventListener('mouseup', this.stopResizing);
     document.addEventListener('click', this.handleClickOutside);
-    window.addEventListener('authToken-localstorage-changed', async () => {
+    // await this.getCurrentUser();
+    try {
       const res = await api.get('boards/');
-      this.boards = res.data;
+      console.log("App.vue, this.boards 1: ", this.boards);
+      console.log("App.vue, res xxx: ", res);
+      this.boards = res.data; // .sort((a, b) => a.order - b.order);
+      
+      const currentId = this.$route.params.id;
+      if (currentId) {
+        this.selectedBoardId = currentId;
+      }
+    } catch (err) {
+      console.error('Failed to load boards:', err);
+    }
+    window.addEventListener('authToken-localstorage-changed', async () => {
+      console.log("app received event");
+      const user = await api.get('/auth/user/');
+      this.currentUser = user.data;
+      console.log("App.vue, this.currentUser:", this.currentUser);
+      
+      const boards = await api.get('boards/');
+      console.log("App.vue, res: ", boards.data);
+      console.log(this.boards);
+      this.boards = boards.data;
+      
+      console.log("App.vue, this.boards 2: ", this.boards);
+      console.log(this.boards);
     });
   },
 
@@ -473,6 +502,27 @@ export default {
   },
 
   methods: {
+    /*
+    async getCurrentUser() {
+        if(!localStorage.getItem('authToken')){
+          const res = await api.get('/auth/user/');
+          this.currentUser = res.data;
+          console.log("App.vue, getCurrentUser:", this.currentUser);
+          // const res2 = await api.get('/social-accounts/');
+          // console.log("App.vue, res2: ", res2);
+          // for (const provider_entry of res2.data) {
+          //   if(provider_entry.provider === 'google'){
+          //     this.currentUser.profile_picture = provider_entry.extra_data['picture']; 
+          //     console.log("App.vue, profile_picture: ", this.currentUser.profile_picture);
+          //   }
+          // }
+         }
+         else{
+          this.currentUser = null;
+         }
+    },
+    */
+
     goToLogin() {
       localStorage.removeItem('authToken');
       window.location.href = 'http://localhost:8000/';
@@ -528,9 +578,9 @@ export default {
   if (!this.renameBoardName.trim()) return;
   api.patch(`boards/${this.selectedBoard.id}/`, { name: this.renameBoardName.trim() })
     .then(res => {
-      // Обновим в selectedBoard
+      // 
       this.selectedBoard.name = res.data.name;
-      // Обновим в boards
+      //
       const idx = this.boards.findIndex(b => b.id === this.selectedBoard.id);
       if (idx !== -1) {
         this.boards[idx].name = res.data.name;
@@ -623,7 +673,7 @@ export default {
       }
     },
     async createBoard() {
-      if (this.isSkipped) {
+      if (!this.currentUser) {
         this.newBoardVisibility = 'public';
       }
       try {
