@@ -17,17 +17,11 @@
         document.addEventListener('click', this.handleClickOutsideUserMenu);
         document.addEventListener('keydown', this.handleEscapeKey);
         
-        window.addEventListener('authToken-localstorage-changed', async () => {
-          console.log("board detail received event");
-        });
-
+        window.addEventListener('authToken-localstorage-changed', async () => {});
+        // console.log(this.currentUser);
+        
         // await this.getCurrentUser();
       },
-    computed: {
-      isSkipped(){
-        return this.currentUser == null
-      }
-    },
     beforeUnmount() {
         document.removeEventListener('click', this.handleClickOutside);
         document.removeEventListener('click', this.handleClickOutsideInput);
@@ -91,13 +85,14 @@
           }
         },
         async currentUser(newValue){
+          // console.log(newValue);
           if(newValue){
             const res2 = await api.get('/social-accounts/');
-            console.log("App.vue, res2: ", res2);
+            // console.log("BoardDetail.vue, res2: ", res2);
             for (const provider_entry of res2.data) {
               if(provider_entry.provider === 'google'){
                 this.profile_picture = provider_entry.extra_data['picture']; 
-                console.log("BoardDetail.vue, profile_picture: ", this.profile_picture);
+                // console.log("BoardDetail.vue, profile_picture: ", this.profile_picture);
               }
             }
           } else {
@@ -108,25 +103,6 @@
       },
 
     methods: {
-      /*
-      async getCurrentUser() {
-        if(localStorage.getItem('authToken')){
-          const res = await api.get('/auth/user/');
-          this.currentUser = res.data;
-          const res2 = await api.get('/social-accounts/');
-          console.log("BoardDetail.vue, res2: ", res2);
-
-          for (const provider_entry of res2.data) {
-            if(provider_entry.provider === 'google'){
-              this.currentUser.profile_picture = provider_entry.extra_data['picture']; 
-            }
-          }
-          }
-          else{
-            this.currentUser = null;
-          }
-      },
-      */
     handleEscapeKey(event) {
         if (event.key === 'Escape' && this.activeCard) {
           this.closeModal();
@@ -168,10 +144,10 @@
       },
 
       renameList(list) {
-      this.modalRename.isOpen = true;
-      this.modalRename.listId = list.id;
-      this.modalRename.newName = list.name;
-    },
+        this.modalRename.isOpen = true;
+        this.modalRename.listId = list.id;
+        this.modalRename.newName = list.name;
+      },
     async submitRename() {
       const id = this.modalRename.listId;
       const name = this.modalRename.newName.trim();
@@ -281,35 +257,35 @@
         }
       },
 
-async downloadFile(filename) {
-  const token = localStorage.getItem('authToken'); // adjust if using cookies or other auth
-  let shortname = filename.split('/').pop();
-  
-  try {
-    // TODO: here, not fetch should be used, but api.get... 
-    const response = await fetch(`http://localhost:8000/api/v1/download/${shortname}/`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Token ${token}`,  // Or `Bearer ${token}` if using JWT
-      },
-    });
+  async downloadFile(filename) {
+      const token = localStorage.getItem('authToken'); // adjust if using cookies or other auth
+      let shortname = filename.split('/').pop();
+    
+      try {
+        // TODO: here, not fetch should be used, but api.get... 
+        const response = await fetch(`http://localhost:8000/api/v1/download/${shortname}/`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Token ${token}`,  // Or `Bearer ${token}` if using JWT
+          },
+        });
 
-    if (!response.ok) throw new Error('Download failed');
+      if (!response.ok) throw new Error('Download failed');
 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = shortname;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-  } catch (err) {
-    console.error('Error downloading file:', err);
-  }
-},
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = shortname;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error downloading file:', err);
+    }
+  },
 
 async fetchBoard(boardId) {
   try {
@@ -650,9 +626,9 @@ memberList.forEach(email => {
       </h1>
       <span
         class="icon is-small has-text-grey is-clickable"
-        :class="{ 'is-disabled': isSkipped }"
-        :disabled="isSkipped"
-        @click="!isSkipped && renameBoard()" 
+        :class="{ 'is-disabled': !this.currentUser }"
+        :disabled="!this.currentUser"
+        @click="this.currentUser && renameBoard()" 
         title="Edit board name"
       >
         <i class="fas fa-pen"></i>
@@ -686,12 +662,12 @@ memberList.forEach(email => {
       
       <div class="dropdown-menu" role="menu" @click.self="isVisibilityOpen = false">
         <div class="dropdown-content">
-          <a v-if="!isSkipped" 
+          <a v-if="this.currentUser" 
           class="dropdown-item is-size-7 has-text-grey-dark" @click="setVisibility('private')">
             <span class="icon is-small mr-2"><i class="fas fa-lock"></i></span>
             <span>Private</span>
           </a>
-          <a v-if="!isSkipped" 
+          <a v-if="this.currentUser" 
           class="dropdown-item is-size-7 has-text-grey-dark" @click="setVisibility('internal')">
             <span class="icon is-small mr-2"><i class="fas fa-users"></i></span>
             <span>Internal</span>
@@ -724,7 +700,7 @@ memberList.forEach(email => {
         :src="this.profile_picture"
         alt="User" class="has-text-grey is-size-7"
         style="width: 30px; height: 30px; object-fit: cover; border-radius: 50%;"
-      /><!--TODO: a check for isSkipped here is not needed, because the profile picture is either null or already loaded-->
+      /><!--TODO: a check for currentUser here is not needed, because the profile picture is either null or already loaded-->
       <span v-else class="has-text-grey-light is-size-7">User</span>
     </span>
   </button>
@@ -735,7 +711,7 @@ memberList.forEach(email => {
     <div class="dropdown-content">
 
   <!-- Skipped login view -->
-      <template v-if="isSkipped">
+      <template v-if="!this.currentUser">
         <div class="dropdown-item is-flex is-flex-direction-column p-2">
           <span class="is-size-7 has-text-grey">You're not logged in yet</span>
         </div>
@@ -847,23 +823,23 @@ memberList.forEach(email => {
                       :ref="'dropdown-' + list.id">
                       <div class="dropdown-content">
                         <a class="dropdown-item is-size-8 has-text-grey-dark has-text-weight-normal dropdown-action" 
-                        :class="{ 'is-disabled': isSkipped }"
-                        :disabled="isSkipped"
-                        @click="!isSkipped && renameList(list)">
+                        :class="{ 'is-disabled': !this.currentUser }"
+                        :disabled="!this.currentUser"
+                        @click="this.currentUser && renameList(list)">
                           <span class="icon is-small mr-2"><i class="fas fa-pen fa-sm"></i></span>
                           <span>Rename</span>
                         </a>
                         <a class="dropdown-item is-size-8 has-text-grey-dark has-text-weight-normal dropdown-action" 
-                        :class="{ 'is-disabled': isSkipped }"
-                        :disabled="isSkipped"
-                        @click="!isSkipped && cloneList(list)">
+                        :class="{ 'is-disabled': !this.currentUser }"
+                        :disabled="!this.currentUser"
+                        @click="this.currentUser && cloneList(list)">
                           <span class="icon is-small mr-2"><i class="fas fa-copy fa-sm"></i></span>
                           <span>Copy</span>
                         </a>
                         <a class="dropdown-item is-size-8 has-text-danger dropdown-action delete-action" 
-                        :class="{ 'is-disabled': isSkipped }"
-                        :disabled="isSkipped"
-                        @click="!isSkipped && deleteList(list.id)">
+                        :class="{ 'is-disabled': !this.currentUser }"
+                        :disabled="!this.currentUser"
+                        @click="this.currentUser && deleteList(list.id)">
                           <span class="icon is-small mr-2"><i class="fas fa-trash fa-sm"></i></span>
                           <span>Delete</span>
                         </a>
@@ -890,9 +866,9 @@ memberList.forEach(email => {
 <!-- Edit button -->
 <button
   class="button is-small is-white has-text-grey-dark"
-  :class="{ 'is-disabled': isSkipped }"
-  :disabled="isSkipped"
-  @click.stop="!isSkipped && openCard(card)"
+  :class="{ 'is-disabled': !this.currentUser }"
+  :disabled="!this.currentUser"
+  @click.stop="this.currentUser && openCard(card)"
   title="Edit"
 >
   <span class="icon is-small"><i class="fas fa-pen"></i></span>
@@ -901,9 +877,9 @@ memberList.forEach(email => {
 <!-- Delete button -->
 <button
   class="button is-small is-white has-text-grey-dark"
-  :class="{ 'is-disabled': isSkipped }"
-  :disabled="isSkipped"
-  @click.stop="!isSkipped && openDeleteCardModal(card)"
+  :class="{ 'is-disabled': !this.currentUser }"
+  :disabled="!this.currentUser"
+  @click.stop="this.currentUser && openDeleteCardModal(card)"
   title="Delete"
 >
   <span class="icon is-small"><i class="fas fa-trash"></i></span>

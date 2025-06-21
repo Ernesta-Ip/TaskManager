@@ -428,21 +428,20 @@ export default {
   },
   computed: {
     activeBoards() {
-        console.log("App.vue, activeBoards:", this.currentUser);
-        /* 
-        TODO: the check for authentication is not needed because it was done on the stage of loading boards
-        TODO: also, because the check for authentication was done on the stage of loading boards, the check for publicity of a board
-        TODO: is also not needed, as only appropriate boards were loaded, compare archivedBoards
+        // console.log("App.vue, activeBoards:", this.currentUser);
+         
+        // TODO: the check for authentication is not needed because it was done on the stage of loading boards
+        // TODO: also, because the check for authentication was done on the stage of loading boards, the check for publicity of a board
+        // TODO: is also not needed, as only appropriate boards were loaded, compare archivedBoards
         return this.currentUser
           ? this.boards.filter(b => !b.is_archived)
           : this.boards.filter(b => !b.is_archived && b.visibility === 'public')
           .sort((a, b) => a.order - b.order);
-        */
-       return this.boards.filter(b => !b.is_archived);
+       // return this.boards.filter(b => !b.is_archived);
       },
 
     archivedBoards() {
-        console.log("App.vue, archivedBoards:", this.currentUser);
+        // console.log("App.vue, archivedBoards:", this.currentUser);
         /*
         TODO: the check for authentication is not needed because it was done on the stage of loading boards
         TODO: also, because the check for authentication was done on the stage of loading boards, the check for publicity of a board
@@ -469,9 +468,14 @@ export default {
     document.addEventListener('click', this.handleClickOutside);
     // await this.getCurrentUser();
     try {
+      // console.log(localStorage.getItem('authToken'));
+      if(localStorage.getItem('authToken') || null){
+        const user = await api.get('/auth/user/');
+        this.currentUser = user.data;
+      }
       const res = await api.get('boards/');
-      console.log("App.vue, this.boards 1: ", this.boards);
-      console.log("App.vue, res xxx: ", res);
+      //console.log("App.vue, this.boards 1: ", this.boards);
+      //console.log("App.vue, res xxx: ", res);
       this.boards = res.data; // .sort((a, b) => a.order - b.order);
       
       const currentId = this.$route.params.id;
@@ -482,19 +486,21 @@ export default {
       console.error('Failed to load boards:', err);
     }
     window.addEventListener('authToken-localstorage-changed', async () => {
-      console.log("app received event");
+      //console.log("app received event");
       const user = await api.get('/auth/user/');
       this.currentUser = user.data;
-      console.log("App.vue, this.currentUser:", this.currentUser);
+      //console.log("App.vue, this.currentUser:", this.currentUser);
       
       const boards = await api.get('boards/');
-      console.log("App.vue, res: ", boards.data);
-      console.log(this.boards);
+      //console.log("App.vue, res: ", boards.data);
+      //console.log(this.boards);
       this.boards = boards.data;
       
-      console.log("App.vue, this.boards 2: ", this.boards);
-      console.log(this.boards);
+      //console.log("App.vue, this.boards 2: ", this.boards);
+      //console.log(this.boards);
     });
+    // console.log(this.currentUser);
+    
   },
 
   beforeUnmount() {
