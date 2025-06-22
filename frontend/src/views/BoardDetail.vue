@@ -78,6 +78,7 @@
     },
 
     watch: {
+        // TODO: what does the watcher concerning $route.params.id do? 
         '$route.params.id': {
           immediate: true,
           handler(newId) {
@@ -85,20 +86,16 @@
           }
         },
         async currentUser(newValue){
-          // console.log(newValue);
           if(newValue){
             const res2 = await api.get('/social-accounts/');
-            // console.log("BoardDetail.vue, res2: ", res2);
             for (const provider_entry of res2.data) {
               if(provider_entry.provider === 'google'){
                 this.profile_picture = provider_entry.extra_data['picture']; 
-                // console.log("BoardDetail.vue, profile_picture: ", this.profile_picture);
               }
             }
           } else {
             this.profile_picture = null; 
           }
-
         }
       },
 

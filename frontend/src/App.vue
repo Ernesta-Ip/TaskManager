@@ -173,7 +173,8 @@ import draggable from 'vuedraggable';
 </draggable>
 
     <!-- Add new board button-->
-      <button class="button is-fullwidth is-small is-light mt-4" @click="showBoardModal = true">
+     <!--TODO: remove this button for the case user is not authenticated-->
+      <button class="button is-fullwidth is-small is-light mt-4" @click="showBoardModal = true" >
           + New Board
         </button>
 
@@ -373,6 +374,10 @@ import draggable from 'vuedraggable';
 
     <main class="main-content">
       <router-view />
+      <!--<router-view v-slot="{ Component }">
+        <component :is="BoardDetail" currentUser="this.currentUser">
+        </component>
+      </router-view>-->
     </main>
   </div>
 </template>
@@ -383,6 +388,7 @@ import { api } from '@/api';
 import { useRouter } from 'vue-router';
 import draggable from 'vuedraggable';
 import { ref, provide } from 'vue';
+// import BoardDetail from './views/BoardDetail.vue';
 
 export default {
   name: 'App',
@@ -410,16 +416,8 @@ export default {
       newBoardMembers: '',
       sidebarWidth: 240,
       isResizing: false,
-      //currentUser: null,
     };
   },
-  /*
-  provide() {
-    return {
-      currentUser: this.currentUser,
-    };
-  },
-  */
   setup() {
     const currentUser = ref(null);
     provide('currentUser', currentUser);
@@ -428,29 +426,11 @@ export default {
   },
   computed: {
     activeBoards() {
-        // console.log("App.vue, activeBoards:", this.currentUser);
-         
-        // TODO: the check for authentication is not needed because it was done on the stage of loading boards
-        // TODO: also, because the check for authentication was done on the stage of loading boards, the check for publicity of a board
-        // TODO: is also not needed, as only appropriate boards were loaded, compare archivedBoards
-        return this.currentUser
-          ? this.boards.filter(b => !b.is_archived)
-          : this.boards.filter(b => !b.is_archived && b.visibility === 'public')
-          .sort((a, b) => a.order - b.order);
-       // return this.boards.filter(b => !b.is_archived);
+        return this.boards.filter(b => !b.is_archived).sort((a, b) => a.order - b.order);
       },
 
     archivedBoards() {
-        // console.log("App.vue, archivedBoards:", this.currentUser);
-        /*
-        TODO: the check for authentication is not needed because it was done on the stage of loading boards
-        TODO: also, because the check for authentication was done on the stage of loading boards, the check for publicity of a board
-        TODO: is also not needed, as only appropriate boards were loaded, compare activeBoards.
-        */
-        return this.currentUser
-          ? this.boards.filter(b => b.is_archived)
-          : this.boards.filter(b => b.is_archived && b.visibility === 'public')
-          .sort((a, b) => a.order - b.order);
+        return this.boards.filter(b => b.is_archived).sort((a, b) => a.order - b.order);
     },
   },
 
@@ -466,18 +446,13 @@ export default {
     window.addEventListener('mousemove', this.resizeSidebar);
     window.addEventListener('mouseup', this.stopResizing);
     document.addEventListener('click', this.handleClickOutside);
-    // await this.getCurrentUser();
     try {
-      // console.log(localStorage.getItem('authToken'));
       if(localStorage.getItem('authToken') || null){
-        const user = await api.get('/auth/user/');
-        this.currentUser = user.data;
+        this.getCurrentUser();
       }
-      const res = await api.get('boards/');
-      //console.log("App.vue, this.boards 1: ", this.boards);
-      //console.log("App.vue, res xxx: ", res);
-      this.boards = res.data; // .sort((a, b) => a.order - b.order);
-      
+      this.getBoards(); 
+
+      // TODO: what does the following block do? 
       const currentId = this.$route.params.id;
       if (currentId) {
         this.selectedBoardId = currentId;
@@ -486,21 +461,9 @@ export default {
       console.error('Failed to load boards:', err);
     }
     window.addEventListener('authToken-localstorage-changed', async () => {
-      //console.log("app received event");
-      const user = await api.get('/auth/user/');
-      this.currentUser = user.data;
-      //console.log("App.vue, this.currentUser:", this.currentUser);
-      
-      const boards = await api.get('boards/');
-      //console.log("App.vue, res: ", boards.data);
-      //console.log(this.boards);
-      this.boards = boards.data;
-      
-      //console.log("App.vue, this.boards 2: ", this.boards);
-      //console.log(this.boards);
-    });
-    // console.log(this.currentUser);
-    
+      this.getCurrentUser();
+      this.getBoards(); 
+    });    
   },
 
   beforeUnmount() {
@@ -508,26 +471,14 @@ export default {
   },
 
   methods: {
-    /*
-    async getCurrentUser() {
-        if(!localStorage.getItem('authToken')){
-          const res = await api.get('/auth/user/');
-          this.currentUser = res.data;
-          console.log("App.vue, getCurrentUser:", this.currentUser);
-          // const res2 = await api.get('/social-accounts/');
-          // console.log("App.vue, res2: ", res2);
-          // for (const provider_entry of res2.data) {
-          //   if(provider_entry.provider === 'google'){
-          //     this.currentUser.profile_picture = provider_entry.extra_data['picture']; 
-          //     console.log("App.vue, profile_picture: ", this.currentUser.profile_picture);
-          //   }
-          // }
-         }
-         else{
-          this.currentUser = null;
-         }
+    async getBoards(){
+      const boards = await api.get('boards/');
+      this.boards = boards.data;
     },
-    */
+    async getCurrentUser(){
+      const res = await api.get('/auth/user/');
+      this.currentUser = res.data;
+    },
 
     goToLogin() {
       localStorage.removeItem('authToken');
