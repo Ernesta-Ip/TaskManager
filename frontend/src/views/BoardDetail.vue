@@ -386,6 +386,7 @@ async fetchBoard(boardId) {
         },
 
         openCard(card) {
+            if(this.currentUser){
               this.activeCard = {
                 ...card,
                 newComment: '',
@@ -401,7 +402,7 @@ async fetchBoard(boardId) {
                   editableDiv.textContent = card.title || '';
                 }
               });
-
+          }
       },
 
       async updateCard() {
@@ -896,9 +897,9 @@ memberList.forEach(email => {
               >
                 <template #item="{ element: card }">
                 <li class="card-item">
-                <span class="card-title" @click="openCard(card)">
-                  {{ card.title }}
-                </span>
+                  <span class="card-title" @click="openCard(card)">
+                    {{ card.title }}
+                  </span>
                 <span class="card-icons">
 
 <!-- Edit button -->
@@ -935,7 +936,7 @@ memberList.forEach(email => {
                 <div class="field has-addons">
                   <div class="control is-expanded">
                     <input
-                      v-model="newCardTitles[list.id]"
+                      v-model="newCardTitles[list.id]" :disabled="!currentUser"
                       class="input is-small"
                       type="text"
                       placeholder="Add new card"
@@ -963,7 +964,7 @@ memberList.forEach(email => {
                     <div class="field has-addons">
                       <div class="control is-expanded">
                         <input
-                          ref="newListInput"
+                          ref="newListInput" :disabled="!currentUser"
                           class="input is-small"
                           :class="{ 'is-danger': showListError }"
                           v-model="newListName"
@@ -985,7 +986,6 @@ memberList.forEach(email => {
               </template>
       </draggable>
   </div>
-  
   
   
   <!-- Modal window for card -->
