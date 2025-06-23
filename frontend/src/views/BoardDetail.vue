@@ -91,8 +91,10 @@
               }
             }
           } else {
+            debugger;
             this.profile_picture = null; 
           }
+          console.log(this.profile_picture);
         }
       },
 
@@ -142,20 +144,21 @@
         this.modalRename.listId = list.id;
         this.modalRename.newName = list.name;
       },
-    async submitRename() {
-      const id = this.modalRename.listId;
-      const name = this.modalRename.newName.trim();
-      if (!name) return;
-      try {
-        const res = await api.patch(`lists/${id}/`, { name });
-        const list = this.board.lists.find(l => l.id === id);
-        if (list) list.name = res.data.name;
-        this.modalRename.isOpen = false;
-      } catch (err) {
-        console.error('Rename failed:', err);
-        alert('Could not rename list.');
-      }
-    },
+
+      async submitRename() {
+        const id = this.modalRename.listId;
+        const name = this.modalRename.newName.trim();
+        if (!name) return;
+        try {
+          const res = await api.patch(`lists/${id}/`, { name });
+          const list = this.board.lists.find(l => l.id === id);
+          if (list) list.name = res.data.name;
+          this.modalRename.isOpen = false;
+        } catch (err) {
+          console.error('Rename failed:', err);
+          alert('Could not rename list.');
+        }
+      },
 
      async handleAddList() {
         if (!this.newListName.trim()) {
@@ -546,7 +549,6 @@ memberList.forEach(email => {
 
         async addComment() {
             if (!this.activeCard.newComment) return;
-
             try {
               const response = await api.post('/comments/', {
                 card: this.activeCard.id,
@@ -558,6 +560,17 @@ memberList.forEach(email => {
               console.error('Failed to add a comment:', error);
             }
           },
+
+        async deleteComment(commentId) {
+          if (!confirm('Are you sure you want to delete this comment?')) return;
+          try {
+            await api.delete(`/comments/${commentId}/`);
+            this.activeCard.comments = this.activeCard.comments.filter(c => c.id !== commentId);
+          } catch (err) {
+            alert('Failed to delete comment');
+            console.error('Failed to delete comment:', err);
+          }
+        },
 
         formatDate(dateString) {
           if (!dateString) return '';
@@ -1048,6 +1061,14 @@ memberList.forEach(email => {
             <div class="mb-1">
               {{ comment.text }}
             </div>
+            <!-- Delete button -->  
+            <div v-if="currentUser && comment.author && comment.author.id === currentUser.id">
+                  <button
+                    @click="deleteComment(comment.id)"
+                    class="has-text-danger is-size-7"
+                    style="background:none;border:none;padding:0;cursor:pointer;"
+                  >Delete</button>
+                </div>
           </li>
         </ul>
 
@@ -1065,7 +1086,7 @@ memberList.forEach(email => {
     <!-- End of Comments Field  -->
 
     <footer class="modal-card-foot">
-      <button class="button is-success" @click="saveCardDetails">💾 Save</button>
+      <button class="button is-success" @click="saveCardDetails"> Save</button>
       <button class="button" @click="closeModal">Cancel</button>
     </footer>
   </div>
