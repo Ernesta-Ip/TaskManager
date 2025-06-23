@@ -107,7 +107,9 @@ class CardViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 class GoogleLoginCallback(APIView):
     def get(self, request, *args, **kwargs):
@@ -125,7 +127,6 @@ class GoogleLoginCallback(APIView):
         token_endpoint_url = urljoin("http://localhost:8000", reverse("google_login"))
         print("token_endpoint_url", token_endpoint_url)
         response = requests.post(url=token_endpoint_url, data={"code": code})
-        # print("response: ", response.text)
         return Response(response.json(), status=status.HTTP_200_OK)
 
 class LoginPage(View):

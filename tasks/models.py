@@ -40,9 +40,9 @@ class Card(models.Model):
 
 class Comment(models.Model):
     card = models.ForeignKey(Card, on_delete=models.CASCADE, related_name='comments')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments_written')  # тот, кто оставил
-    target_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments_about', null=True, blank=True)  # если комментарий "про" другого юзера (необязательно)
-    text = models.TextField()
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments_written')
+    text = models.TextField()  
+    target_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments_about', null=True, blank=True)  
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return f'Comment by {self.author.username} on {self.card.title}'

@@ -18,9 +18,6 @@
         document.addEventListener('keydown', this.handleEscapeKey);
         
         window.addEventListener('authToken-localstorage-changed', async () => {});
-        // console.log(this.currentUser);
-        
-        // await this.getCurrentUser();
       },
     beforeUnmount() {
         document.removeEventListener('click', this.handleClickOutside);
@@ -547,11 +544,27 @@ memberList.forEach(email => {
         },
 
 
-        addComment() {
-          if (!this.activeCard.newComment) return;
-          this.activeCard.comments.push(this.activeCard.newComment);
-          this.activeCard.newComment = '';
+        async addComment() {
+            if (!this.activeCard.newComment) return;
+
+            try {
+              const response = await api.post('/comments/', {
+                card: this.activeCard.id,
+                text: this.activeCard.newComment,
+              });
+              this.activeCard.comments.push(response.data);
+              this.activeCard.newComment = '';
+            } catch (error) {
+              console.error('Failed to add a comment:', error);
+            }
+          },
+
+        formatDate(dateString) {
+          if (!dateString) return '';
+          const date = new Date(dateString);
+          return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         },
+
 
         openDeleteCardModal(card) {
           this.modalDeleteCard = {
@@ -998,13 +1011,45 @@ memberList.forEach(email => {
           <input class="input" v-model="activeCard.membersString" placeholder="user1@example.com, user2@example.com" />
         </div>
       </div>
-
       <hr />
 
-      <h4 class="title is-6">Comments</h4>
-      <ul class="content">
-        <li v-for="(comment, idx) in activeCard.comments" :key="idx">{{ comment }}</li>
-      </ul>
+       <!-- Comments field  -->
+        <ul class="content comments">
+          <li
+            v-for="comment in activeCard.comments"
+            :key="comment.id"
+            class="mb-3 pb-2"
+            style="border-bottom:1px solid #f1f1f1;"
+          >
+            <div class="is-flex is-align-items-center mb-1">
+              <!-- user's picture -->
+              <img
+                v-if="comment.author?.social_accounts?.[0]?.extra_data?.picture"
+                :src="comment.author.social_accounts[0].extra_data.picture"
+                alt="avatar"
+                style="width:28px;height:28px;object-fit:cover;border-radius:50%;margin-right:10px;"
+              />
+              <span v-else class="icon is-medium has-text-grey-light mr-2" style="width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;">
+                <i class="fas fa-user"></i>
+              </span>
+              <!-- name + last name -->
+              <span class="has-text-weight-bold mr-2">
+                {{
+                  (comment.author?.first_name || '') +
+                  (comment.author?.last_name ? ' ' + comment.author.last_name : '') ||
+                  comment.author?.username ||
+                  'User'
+                }}
+              </span>
+              <span class="is-size-7 has-text-grey ml-2">
+                • {{ formatDate(comment.created_at) }}
+              </span>
+            </div>
+            <div class="mb-1">
+              {{ comment.text }}
+            </div>
+          </li>
+        </ul>
 
       <form @submit.prevent="addComment">
         <div class="field has-addons">
@@ -1017,6 +1062,7 @@ memberList.forEach(email => {
         </div>
       </form>
     </section>
+    <!-- End of Comments Field  -->
 
     <footer class="modal-card-foot">
       <button class="button is-success" @click="saveCardDetails">💾 Save</button>

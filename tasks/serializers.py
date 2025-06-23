@@ -43,7 +43,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['id', 'card', 'author', 'content', 'created_at']
+        fields = ['id', 'card', 'author', 'text', 'created_at']
 
 
 class CardSerializer(serializers.ModelSerializer):
