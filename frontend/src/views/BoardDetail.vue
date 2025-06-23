@@ -404,8 +404,6 @@ async fetchBoard(boardId) {
 
       },
 
-
-      
       async updateCard() {
         try {
           const res = await api.patch(`cards/${this.activeCard.id}/`, {
@@ -1090,9 +1088,15 @@ memberList.forEach(email => {
           'User'
         }}
       </span>
-      <span class="is-size-7 has-text-grey ml-2">
-        • {{ formatDate(comment.created_at) }}
-      </span>
+    <span class="is-size-7 has-text-grey ml-2">
+      • 
+      <template v-if="comment.edited_at">
+        edited at {{ formatDate(comment.edited_at) }}
+      </template>
+      <template v-else>
+        {{ formatDate(comment.created_at) }}
+      </template>
+    </span>
     </div>
     <div class="mb-1 is-flex is-justify-content-space-between is-align-items-center">
       <template v-if="editingCommentId === comment.id">

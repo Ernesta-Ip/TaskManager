@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Board(models.Model):
     VISIBILITY_CHOICES = [
@@ -44,7 +45,18 @@ class Comment(models.Model):
     text = models.TextField()  
     target_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments_about', null=True, blank=True)  
     created_at = models.DateTimeField(auto_now_add=True)
+    edited_at = models.DateTimeField(null=True, blank=True) 
     def __str__(self):
         return f'Comment by {self.author.username} on {self.card.title}'
+    def save(self, *args, **kwargs):
+        # if current comment was edited
+        if self.pk is not None and self.has_changed('text'):
+            self.edited_at = timezone.now()
+        super().save(*args, **kwargs)
+    def has_changed(self, field):
+        if not self.pk:
+            return False
+        old_value = type(self).objects.get(pk=self.pk).__dict__[field]
+        return getattr(self, field) != old_value
 
  
