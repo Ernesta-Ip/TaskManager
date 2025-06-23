@@ -115,7 +115,7 @@ import draggable from 'vuedraggable';
           
           <!-- Button ⋯ -->
           <div class="board-menu-wrapper" v-if="hoveredBoardId === board.id">
-            <button class="board-options-toggle" @click.stop="toggleMenu(board.id)">⋯</button>
+            <button class="board-options-toggle" v-if="currentUser" @click.stop="toggleMenu(board.id)">⋯</button>
           </div>
           <div
             v-if="menuOpenBoardId === board.id"
@@ -174,7 +174,8 @@ import draggable from 'vuedraggable';
 
     <!-- Add new board button-->
      <!--TODO: remove this button for the case user is not authenticated-->
-      <button class="button is-fullwidth is-small is-light mt-4" @click="showBoardModal = true" >
+      <button class="button is-fullwidth is-small is-light mt-4" @click="showBoardModal = true" 
+      :disabled="!currentUser">
           + New Board
         </button>
 
@@ -532,12 +533,10 @@ export default {
     },
 
     confirmRenameBoard() {
-  if (!this.renameBoardName.trim()) return;
-  api.patch(`boards/${this.selectedBoard.id}/`, { name: this.renameBoardName.trim() })
-    .then(res => {
-      // 
+    if (!this.renameBoardName.trim()) return;
+    api.patch(`boards/${this.selectedBoard.id}/`, { name: this.renameBoardName.trim() })
+      .then(res => {
       this.selectedBoard.name = res.data.name;
-      //
       const idx = this.boards.findIndex(b => b.id === this.selectedBoard.id);
       if (idx !== -1) {
         this.boards[idx].name = res.data.name;
@@ -663,7 +662,6 @@ async onBoardDrop(evt) {
         order: i,
       });
 
-      // 
       const index = this.boards.findIndex(b => b.id === board.id);
       if (index !== -1) {
         this.boards[index].order = i;

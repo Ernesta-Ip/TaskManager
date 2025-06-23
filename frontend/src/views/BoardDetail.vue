@@ -481,7 +481,7 @@ async fetchBoard(boardId) {
         }
       }
 
-  const today = new Date().setHours(0, 0, 0, 0); // текущая дата без времени
+  const today = new Date().setHours(0, 0, 0, 0); 
   const selectedDate = new Date(this.activeCard.due_date).setHours(0, 0, 0, 0);
 
   if (this.activeCard.due_date && selectedDate < today) {
@@ -622,9 +622,8 @@ memberList.forEach(email => {
         {{ board.name }}
       </h1>
       <span
+        v-if="currentUser"
         class="icon is-small has-text-grey is-clickable"
-        :class="{ 'is-disabled': !this.currentUser }"
-        :disabled="!this.currentUser"
         @click="this.currentUser && renameBoard()" 
         title="Edit board name"
       >
@@ -640,7 +639,7 @@ memberList.forEach(email => {
     <div class="dropdown" :class="{ 'is-active': isVisibilityOpen }" ref="visibilityDropdown">
       <div class="dropdown-trigger">
         <button
-          
+          :disabled="!currentUser"
           @click="isVisibilityOpen = !isVisibilityOpen"
           aria-haspopup="true"
           aria-expanded="isVisibilityOpen"
@@ -657,14 +656,14 @@ memberList.forEach(email => {
         </button>
       </div>
       
-      <div class="dropdown-menu" role="menu" @click.self="isVisibilityOpen = false">
+      <div class="dropdown-menu" v-if="currentUser" role="menu" @click.self="isVisibilityOpen = false">
         <div class="dropdown-content">
-          <a v-if="this.currentUser" 
+          <a 
           class="dropdown-item is-size-7 has-text-grey-dark" @click="setVisibility('private')">
             <span class="icon is-small mr-2"><i class="fas fa-lock"></i></span>
             <span>Private</span>
           </a>
-          <a v-if="this.currentUser" 
+          <a 
           class="dropdown-item is-size-7 has-text-grey-dark" @click="setVisibility('internal')">
             <span class="icon is-small mr-2"><i class="fas fa-users"></i></span>
             <span>Internal</span>
@@ -740,23 +739,6 @@ memberList.forEach(email => {
           <span>Log out</span>
         </a>
       </template>
-
-      <!-- Anonymous fallback (not skipped, no currentUser) -->
-      <template v-else>
-        <div class="dropdown-item is-flex is-flex-direction-column p-2">
-          <span class="is-size-7 has-text-grey">You're not logged in yet</span>
-        </div>
-        <hr class="dropdown-divider" />
-        <a
-          class="dropdown-item has-text-link has-text-weight-semibold"
-          @click="logout"
-          style="display: flex; align-items: center; gap: 8px;"
-        >
-          <span class="icon is-small"><i class="fas fa-sign-in-alt"></i></span>
-          <span>Log in</span>
-        </a>
-      </template>
-
     </div>
   </div>
 </div>
@@ -808,6 +790,7 @@ memberList.forEach(email => {
                   <span>{{ list.name }}</span>
                   <div class="dropdown is-right" :class="{ 'is-active': menuOpenListId === list.id }">
                     <button
+                      v-if="currentUser"
                       class="no-style-button "
                       @click.stop="toggleListMenu(list.id)"
                       :aria-expanded="menuOpenListId === list.id"
@@ -821,21 +804,18 @@ memberList.forEach(email => {
                       <div class="dropdown-content">
                         <a class="dropdown-item is-size-8 has-text-grey-dark has-text-weight-normal dropdown-action" 
                         :class="{ 'is-disabled': !this.currentUser }"
-                        :disabled="!this.currentUser"
                         @click="this.currentUser && renameList(list)">
                           <span class="icon is-small mr-2"><i class="fas fa-pen fa-sm"></i></span>
                           <span>Rename</span>
                         </a>
                         <a class="dropdown-item is-size-8 has-text-grey-dark has-text-weight-normal dropdown-action" 
                         :class="{ 'is-disabled': !this.currentUser }"
-                        :disabled="!this.currentUser"
                         @click="this.currentUser && cloneList(list)">
                           <span class="icon is-small mr-2"><i class="fas fa-copy fa-sm"></i></span>
                           <span>Copy</span>
                         </a>
                         <a class="dropdown-item is-size-8 has-text-danger dropdown-action delete-action" 
                         :class="{ 'is-disabled': !this.currentUser }"
-                        :disabled="!this.currentUser"
                         @click="this.currentUser && deleteList(list.id)">
                           <span class="icon is-small mr-2"><i class="fas fa-trash fa-sm"></i></span>
                           <span>Delete</span>
@@ -901,7 +881,8 @@ memberList.forEach(email => {
                     />
                   </div>
                   <div class="control">
-                    <button class="button is-small is-light" type="submit" title="Add card">
+                    <button class="button is-small is-light" type="submit" title="Add card"
+                    :disabled="!currentUser">
                       <span class="icon is-small">
                         <i class="fas fa-plus"></i>
                       </span>
@@ -930,7 +911,7 @@ memberList.forEach(email => {
                         />
                       </div>
                       <div class="control">
-                        <button class="button is-small is-light" type="submit" title="Add list">
+                        <button class="button is-small is-light" type="submit" title="Add list" :disabled="!currentUser">
                           <span class="icon is-small">
                             <i class="fas fa-plus"></i>
                           </span>
