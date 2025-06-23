@@ -60,6 +60,11 @@
         modalDeleteAttachment: {
           isOpen: false,
         },
+        modalDeleteComment: {
+          isOpen: false,
+          commentId: null,
+          commentText: ''
+        },
         modalRenameBoard: {
           isOpen: false,
           newName: ''
@@ -561,15 +566,23 @@ memberList.forEach(email => {
             }
           },
 
-        async deleteComment(commentId) {
-          if (!confirm('Are you sure you want to delete this comment?')) return;
+        openDeleteCommentModal(comment) {
+          this.modalDeleteComment.isOpen = true;
+          this.modalDeleteComment.commentId = comment.id;
+          this.modalDeleteComment.commentText = comment.text;
+        },
+
+        async confirmDeleteComment() {
           try {
-            await api.delete(`/comments/${commentId}/`);
-            this.activeCard.comments = this.activeCard.comments.filter(c => c.id !== commentId);
+            await api.delete(`/comments/${this.modalDeleteComment.commentId}/`);
+            this.activeCard.comments = this.activeCard.comments.filter(
+              c => c.id !== this.modalDeleteComment.commentId
+            );
+            this.modalDeleteComment.isOpen = false;
           } catch (err) {
             alert('Failed to delete comment');
             console.error('Failed to delete comment:', err);
-          }
+          }     
         },
 
         formatDate(dateString) {
@@ -1064,7 +1077,7 @@ memberList.forEach(email => {
             <!-- Delete button -->  
             <div v-if="currentUser && comment.author && comment.author.id === currentUser.id">
                   <button
-                    @click="deleteComment(comment.id)"
+                    @click="openDeleteCommentModal(comment)"
                     class="has-text-danger is-size-7"
                     style="background:none;border:none;padding:0;cursor:pointer;"
                   >Delete</button>
@@ -1171,6 +1184,28 @@ memberList.forEach(email => {
               </footer>
             </div>
           </div>
+
+          <!-- Confirm Delete Comment Comment Modal -->
+            <div class="modal" :class="{ 'is-active': modalDeleteComment.isOpen }">
+              <div class="modal-background" @click="modalDeleteComment.isOpen = false"></div>
+              <div class="modal-card">
+                <header class="modal-card-head">
+                  <p class="modal-card-title">Delete Comment</p>
+                  <button class="delete" aria-label="close" @click="modalDeleteComment.isOpen = false"></button>
+                </header>
+                <section class="modal-card-body">
+                  Are you sure you want to delete this comment?
+                  <blockquote class="is-size-7 has-text-grey-dark mt-3" style="border-left:3px solid #f14668;padding-left:0.7em;">
+                    {{ modalDeleteComment.commentText }}
+                  </blockquote>
+                </section>
+                <footer class="modal-card-foot">
+                  <button class="button is-danger" @click="confirmDeleteComment">Delete</button>
+                  <button class="button" @click="modalDeleteComment.isOpen = false">Cancel</button>
+                </footer>
+              </div>
+            </div>
+
   </template>
   
   <style>
