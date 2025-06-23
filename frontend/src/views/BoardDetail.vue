@@ -69,7 +69,8 @@
           isOpen: false,
           newName: ''
         },
-
+        editingCommentId: null,
+        editingCommentText: '',
         isVisibilityOpen: false,
         profile_picture: null,
       };
@@ -268,7 +269,7 @@
         const response = await fetch(`http://localhost:8000/api/v1/download/${shortname}/`, {
           method: 'GET',
           headers: {
-            Authorization: `Token ${token}`,  // Or `Bearer ${token}` if using JWT
+            Authorization: `Token ${token}`,  
           },
         });
 
@@ -453,7 +454,7 @@ async fetchBoard(boardId) {
         this.activeCard.attachment = file;
       },
 
-        getAttachmentName(attachment) {
+      getAttachmentName(attachment) {
           if (!attachment) return '';
           if (typeof attachment === 'string') {
             return attachment.split('/').pop();
@@ -551,7 +552,6 @@ memberList.forEach(email => {
           }
         },
 
-
         async addComment() {
             if (!this.activeCard.newComment) return;
             try {
@@ -590,6 +590,30 @@ memberList.forEach(email => {
           const date = new Date(dateString);
           return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         },
+
+        startEditComment(comment) {
+            this.editingCommentId = comment.id;
+            this.editingCommentText = comment.text;
+          },
+        cancelEditComment() {
+            this.editingCommentId = null;
+            this.editingCommentText = '';
+          },
+        async saveEditedComment(comment) {
+            if (!this.editingCommentText.trim()) {
+              alert('Comment text cannot be empty');
+              return;
+            }
+            try {
+              const res = await api.patch(`/comments/${comment.id}/`, { text: this.editingCommentText });
+              comment.text = res.data.text;
+              this.editingCommentId = null;
+              this.editingCommentText = '';
+            } catch (err) {
+              alert('Failed to update comment');
+              console.error('Failed to update comment:', err);
+            }
+          },
 
 
         openDeleteCardModal(card) {
@@ -1041,49 +1065,73 @@ memberList.forEach(email => {
 
        <!-- Comments field  -->
         <ul class="content comments">
-          <li
-            v-for="comment in activeCard.comments"
-            :key="comment.id"
-            class="mb-3 pb-2"
-            style="border-bottom:1px solid #f1f1f1;"
-          >
-            <div class="is-flex is-align-items-center mb-1">
-              <!-- user's picture -->
-              <img
-                v-if="comment.author?.social_accounts?.[0]?.extra_data?.picture"
-                :src="comment.author.social_accounts[0].extra_data.picture"
-                alt="avatar"
-                style="width:28px;height:28px;object-fit:cover;border-radius:50%;margin-right:10px;"
-              />
-              <span v-else class="icon is-medium has-text-grey-light mr-2" style="width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;">
-                <i class="fas fa-user"></i>
-              </span>
-              <!-- name + last name -->
-              <span class="has-text-weight-bold mr-2">
-                {{
-                  (comment.author?.first_name || '') +
-                  (comment.author?.last_name ? ' ' + comment.author.last_name : '') ||
-                  comment.author?.username ||
-                  'User'
-                }}
-              </span>
-              <span class="is-size-7 has-text-grey ml-2">
-                • {{ formatDate(comment.created_at) }}
-              </span>
-            </div>
-            <div class="mb-1">
-              {{ comment.text }}
-            </div>
-            <!-- Delete button -->  
-            <div v-if="currentUser && comment.author && comment.author.id === currentUser.id">
-                  <button
-                    @click="openDeleteCommentModal(comment)"
-                    class="has-text-danger is-size-7"
-                    style="background:none;border:none;padding:0;cursor:pointer;"
-                  >Delete</button>
-                </div>
-          </li>
-        </ul>
+  <li
+    v-for="comment in activeCard.comments"
+    :key="comment.id"
+    class="mb-3 pb-2"
+    style="border-bottom:1px solid #f1f1f1;"
+  >
+    <div class="is-flex is-align-items-center mb-1">
+      <!-- user's picture -->
+      <img
+        v-if="comment.author?.social_accounts?.[0]?.extra_data?.picture"
+        :src="comment.author.social_accounts[0].extra_data.picture"
+        alt="avatar"
+        style="width:28px;height:28px;object-fit:cover;border-radius:50%;margin-right:10px;"
+      />
+      <span v-else class="icon is-medium has-text-grey-light mr-2" style="width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;">
+        <i class="fas fa-user"></i>
+      </span>
+      <span class="has-text-weight-bold mr-2">
+        {{
+          (comment.author?.first_name || '') +
+          (comment.author?.last_name ? ' ' + comment.author.last_name : '') ||
+          comment.author?.username ||
+          'User'
+        }}
+      </span>
+      <span class="is-size-7 has-text-grey ml-2">
+        • {{ formatDate(comment.created_at) }}
+      </span>
+    </div>
+    <div class="mb-1 is-flex is-justify-content-space-between is-align-items-center">
+      <template v-if="editingCommentId === comment.id">
+        <input
+          v-model="editingCommentText"
+          class="input is-small"
+          style="width: 70%; min-width:120px; margin-bottom: 0;"
+          @keyup.enter="saveEditedComment(comment)"
+        />
+        <span style="display:flex;gap:0.4em;margin-left:auto;">
+          <button
+            class="has-text-danger"
+            style="background:none;border:none;padding:2px 6px;font-size:0.9em;line-height:1.7;cursor:pointer;"
+            @click="cancelEditComment"
+          >Cancel</button>
+        </span>
+      </template>
+      <template v-else>
+        <span>{{ comment.text }}</span>
+        <span
+          v-if="currentUser && comment.author && comment.author.id === currentUser.id"
+          style="display:flex;gap:8px;align-items:center;">
+          <button
+            class="has-text-grey"
+            style="background:none;border:none;padding:2px 6px;font-size:0.9em;line-height:1.7;cursor:pointer;"
+            @click="startEditComment(comment)"
+          >Edit</button>
+          <button
+            @click="openDeleteCommentModal(comment)"
+            class="has-text-danger"
+            style="background:none;border:none;padding:2px 6px;font-size:0.9em;line-height:1.7;cursor:pointer;"
+          >Delete</button>
+        </span>
+      </template>
+    </div>
+  </li>
+</ul>
+
+
 
       <form @submit.prevent="addComment">
         <div class="field has-addons">
