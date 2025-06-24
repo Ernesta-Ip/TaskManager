@@ -16,7 +16,7 @@
         document.addEventListener('click', this.handleClickOutsideInput);
         document.addEventListener('click', this.handleClickOutsideUserMenu);
         document.addEventListener('keydown', this.handleEscapeKey);
-        
+        document.addEventListener('click', this.handleOutsideEmailClick);
         window.addEventListener('authToken-localstorage-changed', async () => {});
       },
     beforeUnmount() {
@@ -24,6 +24,7 @@
         document.removeEventListener('click', this.handleClickOutsideInput);
         document.removeEventListener('click', this.handleClickOutsideUserMenu);
         document.removeEventListener('keydown', this.handleEscapeKey);
+        document.removeEventListener('click', this.handleOutsideEmailClick);
       },
 
     data() {
@@ -75,10 +76,23 @@
         profile_picture: null,
         isEditingMembers: false,
         editableMemberEmails: '',
-      };
+        showAllEmails: false,
+        showAllEmailsModal: false,
+        editableEmails: [],
+        newEmailInput: '',
+        };
 
     },
     
+    computed: {
+    visibleEmails() {
+      if (!this.board.member_email_list) return [];
+      return this.showAllEmails
+        ? this.board.member_email_list
+        : this.board.member_email_list.slice(0, 2);
+    }
+  },
+
     created() {
       this.fetchBoard(this.$route.params.id);
     },
@@ -467,75 +481,75 @@ async fetchBoard(boardId) {
           return '';
         },
 
-  async saveCardDetails() {
-    if (!this.activeCard.title || !this.activeCard.title.trim()) {
-    alert('Title cannot be empty.');
-    return;
-  }
-
-  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-
-  if (this.activeCard.due_date) {
-   
-        if (!datePattern.test(this.activeCard.due_date)) {
-          alert('Due date must be in DD-MM-YYYY format.');
+        async saveCardDetails() {
+          if (!this.activeCard.title || !this.activeCard.title.trim()) {
+          alert('Title cannot be empty.');
           return;
         }
-      const parsedDate = new Date(this.activeCard.due_date);
-        const isValidDate = !isNaN(parsedDate.getTime());
-    if (!isValidDate) {
-          alert('Invalid date. Please choose a valid due date.');
+
+        const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+        if (this.activeCard.due_date) {
+        
+              if (!datePattern.test(this.activeCard.due_date)) {
+                alert('Due date must be in DD-MM-YYYY format.');
+                return;
+              }
+            const parsedDate = new Date(this.activeCard.due_date);
+              const isValidDate = !isNaN(parsedDate.getTime());
+          if (!isValidDate) {
+                alert('Invalid date. Please choose a valid due date.');
+                return;
+              }
+            }
+
+        const today = new Date().setHours(0, 0, 0, 0); 
+        const selectedDate = new Date(this.activeCard.due_date).setHours(0, 0, 0, 0);
+
+        if (this.activeCard.due_date && selectedDate < today) {
+          alert('Due date cannot be in the past.');
           return;
         }
+
+        const formData = new FormData();
+        formData.append('title', this.activeCard.title);
+        formData.append('description', this.activeCard.description);
+        formData.append('due_date', this.activeCard.due_date || '');
+        const memberList = this.activeCard.membersString
+        .split(',')
+        .map(e => e.trim())
+        .filter(Boolean);
+
+      memberList.forEach(email => {
+        formData.append('members', email);
+      });
+
+        if (this.activeCard.attachment) {
+          formData.append('attachment', this.activeCard.attachment);
+        }
+
+        try {
+          const res = await api.patch(`cards/${this.activeCard.id}/`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          for (const list of this.board.lists) {
+            const idx = list.cards.findIndex(c => c.id === res.data.id);
+            if (idx !== -1) {
+              list.cards[idx] = res.data;
+              break;
+            }
+          }
+
+          this.closeModal();
+        } catch (err) {
+        console.error('Failed to save card:', err);
+
+        if (err.response && err.response.data) {
+          console.log('Validation error:', err.response.data);
+          alert('Validation error: ' + JSON.stringify(err.response.data, null, 2));
+        }
       }
-
-  const today = new Date().setHours(0, 0, 0, 0); 
-  const selectedDate = new Date(this.activeCard.due_date).setHours(0, 0, 0, 0);
-
-  if (this.activeCard.due_date && selectedDate < today) {
-    alert('Due date cannot be in the past.');
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append('title', this.activeCard.title);
-  formData.append('description', this.activeCard.description);
-  formData.append('due_date', this.activeCard.due_date || '');
-  const memberList = this.activeCard.membersString
-  .split(',')
-  .map(e => e.trim())
-  .filter(Boolean);
-
-memberList.forEach(email => {
-  formData.append('members', email);
-});
-
-  if (this.activeCard.attachment) {
-    formData.append('attachment', this.activeCard.attachment);
-  }
-
-  try {
-    const res = await api.patch(`cards/${this.activeCard.id}/`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    for (const list of this.board.lists) {
-      const idx = list.cards.findIndex(c => c.id === res.data.id);
-      if (idx !== -1) {
-        list.cards[idx] = res.data;
-        break;
-      }
-    }
-
-    this.closeModal();
-  } catch (err) {
-  console.error('Failed to save card:', err);
-
-  if (err.response && err.response.data) {
-    console.log('Validation error:', err.response.data);
-    alert('Validation error: ' + JSON.stringify(err.response.data, null, 2));
-  }
-}
-},
+      },
   
           removeAttachment() {
           this.modalDeleteAttachment.isOpen = true;
@@ -628,34 +642,73 @@ memberList.forEach(email => {
             }
           },
 
-        startEditingMembers() {
-  this.editableMemberEmails = this.board.member_email_list?.join(', ') || '';
-  this.isEditingMembers = true;
-},
+        cancelEditingMembers() {
+          this.isEditingMembers = false;
+          this.editableMemberEmails = '';
+        },
 
-cancelEditingMembers() {
-  this.isEditingMembers = false;
-  this.editableMemberEmails = '';
-},
+        async saveMemberEmails() {
+          try {
+            const cleaned = this.editableMemberEmails
+              .split(',')
+              .map(e => e.trim())
+              .filter(e => e);
 
-async saveMemberEmails() {
-  try {
-    const cleaned = this.editableMemberEmails
-      .split(',')
-      .map(e => e.trim())
-      .filter(e => e);
+          await api.patch(`boards/${this.board.id}/`, {
+              member_emails: cleaned.join(', ')
+            });
 
-   await api.patch(`boards/${this.board.id}/`, {
-      member_emails: cleaned.join(', ')
-    });
+            this.board.member_email_list = cleaned;
+            this.isEditingMembers = false;
+          } catch (err) {
+            console.error('Failed to update members:', err);
+            alert('Could not update members.');
+          }
+        },
 
-    this.board.member_email_list = cleaned;
-    this.isEditingMembers = false;
-  } catch (err) {
-    console.error('Failed to update members:', err);
-    alert('Could not update members.');
-  }
-},
+        openEmailEditModal() {
+          this.editableEmails = [...(this.board.member_email_list || [])];
+          this.newEmailInput = '';
+          this.showAllEmailsModal = true;
+        },
+
+
+        addEmail() {
+          const email = this.newEmailInput.trim();
+          if (!email) return;
+          if (!this.editableEmails.includes(email)) {
+            this.editableEmails.push(email);
+          }
+          this.newEmailInput = '';
+        },
+
+
+        removeEmail(index) {
+          this.editableEmails.splice(index, 1);
+        },
+
+        async saveUpdatedEmails() {
+          try {
+            const cleanEmails = this.editableEmails.map(email => email.trim()).filter(Boolean);
+            const res = await api.patch(`boards/${this.board.id}/`, {
+              member_emails: cleanEmails.join(','),
+            });
+            this.board.member_email_list = cleanEmails;
+            this.showAllEmailsModal = false;
+          } catch (err) {
+            console.error('Failed to save updated emails:', err);
+          }
+        },
+
+        toggleShowAllEmails() {
+          this.showAllEmails = !this.showAllEmails;
+        },
+        handleOutsideEmailClick(e) {
+          const listWrapper = this.$refs.emailDropdownWrapper;
+          if (this.showAllEmails && listWrapper && !listWrapper.contains(e.target)) {
+            this.showAllEmails = false;
+          }
+        },
 
         openDeleteCardModal(card) {
           this.modalDeleteCard = {
@@ -780,23 +833,28 @@ async saveMemberEmails() {
       </div>
     </div>
   </div>
-  </div>
 
-<!-- Members -->
-<!-- <div class="mr-4">
-  <label class="label is-size-7 has-text-grey-dark mb-1">Members</label>
-  <p class="is-size-7 has-text-grey">
-    {{ board.member_email_list?.length ? board.member_email_list.join(', ') : 'No members assigned' }}
-  </p>
-</div> -->
 <!-- Members -->
 <div class="mr-4">
   <label class="label is-size-7 has-text-grey-dark mb-1">Members</label>
-
-  <div v-if="!isEditingMembers" @click="startEditingMembers" class="is-clickable">
-    <p class="is-size-7 has-text-grey">
-      {{ board.member_email_list?.length ? board.member_email_list.join(', ') : 'No members assigned' }}
-    </p>
+  <div v-if="!isEditingMembers" @click="openEmailEditModal" class="is-clickable">
+    <div class="is-size-7 has-text-grey mt-3">
+      <template v-if="board.member_email_list?.length">
+          <ul v-if="!showAllEmails">
+            <li v-for="(email, index) in visibleEmails" :key="index">{{ email }}</li>
+          </ul>
+          <button
+            v-if="board.member_email_list.length > 3"
+            class="button is-text is-small mt-1 p-0"
+            @click.stop="openEmailEditModal"
+          >
+            Show all
+          </button>
+      </template>
+      <template v-else>
+        No members assigned
+      </template>
+    </div>
   </div>
 
   <div v-else>
@@ -869,7 +927,7 @@ async saveMemberEmails() {
     </div>
   </div>
 </div>
-
+</div>
 
       </div>
     </div>
@@ -1323,6 +1381,52 @@ async saveMemberEmails() {
               </div>
             </div>
 
+
+            <!-- Modal: Show all Members -->
+          <div class="modal" :class="{ 'is-active': showAllEmailsModal }">
+            <div class="modal-background" @click="showAllEmailsModal = false"></div>
+            <div class="modal-card">
+              <header class="modal-card-head">
+                <p class="modal-card-title">All Members</p>
+                <button class="delete" aria-label="close" @click="showAllEmailsModal = false"></button>
+              </header>
+              <section class="modal-card-body">
+                <ul class="is-size-7">
+                  <li v-for="(email, index) in editableEmails" :key="'email-' + index" class="mb-2 is-flex">
+                    <input
+                      class="input is-small"
+                      v-model="editableEmails[index]"
+                      type="email"
+                    />
+                    <button class="delete is-small" @click="removeEmail(index)"></button>
+                  </li>
+                </ul>
+
+                <!-- Single input to add new email -->
+                <div class="field has-addons mt-4">
+                  <div class="control is-expanded">
+                    <input
+                      class="input is-small"
+                      v-model="newEmailInput"
+                      type="email"
+                      placeholder="Add new email"
+                      @keyup.enter="addEmail"
+                    />
+                  </div>
+                  <div class="control">
+                    <button class="button is-small is-info" @click="addEmail">Add</button>
+                  </div>
+                </div>
+              </section>
+              <footer class="modal-card-foot is-justify-content-flex-end">
+                <button class="button is-success" @click="saveUpdatedEmails">Save</button>
+                <button class="button" @click="showAllEmailsModal = false">Cancel</button>
+              </footer>
+            </div>
+          </div>
+
+
+
   </template>
   
   <style>
@@ -1387,7 +1491,7 @@ async saveMemberEmails() {
 }
 
 .editable-title {
-  direction: ltr; /* 👈 гарантирует, что текст вводится слева направо */
+  direction: ltr; 
 }
 
 @media (max-width: 768px) {
