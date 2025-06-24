@@ -636,10 +636,11 @@ export default {
         const res = await api.post('boards/', {
           name: this.newBoardName,
           visibility: this.newBoardVisibility,
-          members: this.newBoardMembers
-            .split(',')
-            .map(email => email.trim())
-            .filter(email => email),
+          member_emails: this.newBoardMembers
+          .split(',')
+          .map(email => email.trim())
+          .filter(email => email)
+          .join(', '),
         });
 
         this.boards.push(res.data);

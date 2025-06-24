@@ -73,7 +73,10 @@
         editingCommentText: '',
         isVisibilityOpen: false,
         profile_picture: null,
+        isEditingMembers: false,
+        editableMemberEmails: '',
       };
+
     },
     
     created() {
@@ -591,9 +594,20 @@ memberList.forEach(email => {
         },
 
         startEditComment(comment) {
+          console.log("startEditComment");
+          console.log(this.currentUser);
+          console.log(comment.author.pk);
+          console.log(this.currentUser.pk);
+          console.log(this.activeCard);
+
+          if (comment.author.pk !== this.currentUser.pk) {
+            alert("You can only edit your own comments.");
+            return;
+          }
             this.editingCommentId = comment.id;
             this.editingCommentText = comment.text;
           },
+
         cancelEditComment() {
             this.editingCommentId = null;
             this.editingCommentText = '';
@@ -614,6 +628,34 @@ memberList.forEach(email => {
             }
           },
 
+        startEditingMembers() {
+  this.editableMemberEmails = this.board.member_email_list?.join(', ') || '';
+  this.isEditingMembers = true;
+},
+
+cancelEditingMembers() {
+  this.isEditingMembers = false;
+  this.editableMemberEmails = '';
+},
+
+async saveMemberEmails() {
+  try {
+    const cleaned = this.editableMemberEmails
+      .split(',')
+      .map(e => e.trim())
+      .filter(e => e);
+
+   await api.patch(`boards/${this.board.id}/`, {
+      member_emails: cleaned.join(', ')
+    });
+
+    this.board.member_email_list = cleaned;
+    this.isEditingMembers = false;
+  } catch (err) {
+    console.error('Failed to update members:', err);
+    alert('Could not update members.');
+  }
+},
 
         openDeleteCardModal(card) {
           this.modalDeleteCard = {
@@ -741,12 +783,35 @@ memberList.forEach(email => {
   </div>
 
 <!-- Members -->
-  <div>
-    <label class="label is-size-7 has-text-grey-dark mb-1">Members</label>
-    <p class="is-size-7 has-text-grey mt-3">
-      {{ board.members?.join(', ') || 'No members assigned' }}
+<!-- <div class="mr-4">
+  <label class="label is-size-7 has-text-grey-dark mb-1">Members</label>
+  <p class="is-size-7 has-text-grey">
+    {{ board.member_email_list?.length ? board.member_email_list.join(', ') : 'No members assigned' }}
+  </p>
+</div> -->
+<!-- Members -->
+<div class="mr-4">
+  <label class="label is-size-7 has-text-grey-dark mb-1">Members</label>
+
+  <div v-if="!isEditingMembers" @click="startEditingMembers" class="is-clickable">
+    <p class="is-size-7 has-text-grey">
+      {{ board.member_email_list?.length ? board.member_email_list.join(', ') : 'No members assigned' }}
     </p>
   </div>
+
+  <div v-else>
+    <textarea
+      class="textarea is-small"
+      v-model="editableMemberEmails"
+      placeholder="user1@example.com, user2@example.com"
+    ></textarea>
+    <div class="mt-2">
+      <button class="button is-success is-small mr-2" @click="saveMemberEmails">Save</button>
+      <button class="button is-light is-small" @click="cancelEditingMembers">Cancel</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- Dropdown wrapper -->
 <div class="dropdown is-right" :class="{ 'is-active': isUserMenuOpen }">
@@ -1117,7 +1182,7 @@ memberList.forEach(email => {
       <template v-else>
         <span>{{ comment.text }}</span>
         <span
-          v-if="currentUser && comment.author && comment.author.id === currentUser.id"
+          v-if="comment.author.pk === currentUser.pk"
           style="display:flex;gap:8px;align-items:center;">
           <button
             class="has-text-grey"

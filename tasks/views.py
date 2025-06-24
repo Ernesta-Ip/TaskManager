@@ -77,7 +77,7 @@ class BoardViewSet(viewsets.ModelViewSet):
     # queryset = Board.objects.all()
     serializer_class = BoardSerializer
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user.id)
+        serializer.save(created_by=self.request.user)
             
     def get_queryset(self):
             user = self.request.user
@@ -88,7 +88,7 @@ class BoardViewSet(viewsets.ModelViewSet):
                 models.Q(visibility='public') |
                 models.Q(visibility='internal') |
                 models.Q(created_by=user.id) |
-                models.Q(members=user),
+                models.Q(member_emails__icontains=user.email),
             ).distinct()
 
 

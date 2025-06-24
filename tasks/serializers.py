@@ -72,13 +72,15 @@ class ListSerializer(serializers.ModelSerializer):
 
 class BoardSerializer(serializers.ModelSerializer):
     created_by = serializers.ReadOnlyField(source='created_by.email')
-    members = UserSerializer(many=True, read_only=True)
     lists = ListSerializer(many=True, read_only=True)
+    member_email_list = serializers.SerializerMethodField()
 
     class Meta:
         model = Board
         fields = [
-            'id', 'name', 'visibility', 'members', 'created_by',
-            'created_at', 'lists', 'is_archived', 'order'
-        ]
+            'id', 'name', 'visibility', 'member_emails', 'member_email_list', 'created_by',
+            'created_at', 'lists', 'is_archived', 'order']
         read_only_fields = ['created_by']
+
+    def get_member_email_list(self, obj):
+        return obj.get_member_email_list()

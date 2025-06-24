@@ -11,12 +11,14 @@ class Board(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='boards_created')
     name = models.CharField(max_length=255)
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='private')
-    members = models.ManyToManyField(User, related_name='tasks_boards', blank=True)
+    member_emails = models.TextField(blank=True, help_text="Comma-separated list of member emails")
     created_at = models.DateTimeField(auto_now_add=True)
     order = models.PositiveIntegerField(default=0)
     is_archived = models.BooleanField(default=False)
     def __str__(self):
         return self.name
+    def get_member_email_list(self):
+        return [email.strip() for email in self.member_emails.split(",") if email.strip()]
 
 class List(models.Model):
     board = models.ForeignKey(Board, related_name='lists', on_delete=models.CASCADE)
@@ -50,13 +52,13 @@ class Comment(models.Model):
         return f'Comment by {self.author.username} on {self.card.title}'
     def save(self, *args, **kwargs):
         # if current comment was edited
-        if self.pk is not None and self.has_changed('text'):
+        if self.pk is not None and self.has_changed():
             self.edited_at = timezone.now()
         super().save(*args, **kwargs)
-    def has_changed(self, field):
+    def has_changed(self):
         if not self.pk:
             return False
-        old_value = type(self).objects.get(pk=self.pk).__dict__[field]
-        return getattr(self, field) != old_value
+        old_value = type(self).objects.get(pk=self.pk).__dict__['text']
+        return self.text != old_value
 
  
