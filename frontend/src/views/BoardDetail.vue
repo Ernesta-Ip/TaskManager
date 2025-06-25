@@ -682,7 +682,6 @@ async fetchBoard(boardId) {
           this.newEmailInput = '';
         },
 
-
         removeEmail(index) {
           this.editableEmails.splice(index, 1);
         },
@@ -690,9 +689,9 @@ async fetchBoard(boardId) {
         async saveUpdatedEmails() {
           try {
             const cleanEmails = this.editableEmails.map(email => email.trim()).filter(Boolean);
-            const res = await api.patch(`boards/${this.board.id}/`, {
-              member_emails: cleanEmails.join(','),
-            });
+            // const res = await api.patch(`boards/${this.board.id}/`, {
+            //   member_emails: cleanEmails.join(','),
+            // });
             this.board.member_email_list = cleanEmails;
             this.showAllEmailsModal = false;
           } catch (err) {
@@ -789,6 +788,14 @@ async fetchBoard(boardId) {
     </div>
 
 <div class="is-flex is-flex-wrap-wrap" style="gap: 1.5rem;">
+
+  <!-- Created by -->
+  <div class="mr-4">
+    <label class="label is-size-7 has-text-grey-dark mb-1">Created by</label>
+    <div class="is-size-7 has-text-grey mt-3">
+      {{ board.created_by || '—' }}
+    </div>
+  </div>
 
   <!-- Visibility -->
   <div class="mr-4">
@@ -1392,13 +1399,15 @@ async fetchBoard(boardId) {
               </header>
               <section class="modal-card-body">
                 <ul class="is-size-7">
-                  <li v-for="(email, index) in editableEmails" :key="'email-' + index" class="mb-2 is-flex">
-                    <input
-                      class="input is-small"
-                      v-model="editableEmails[index]"
-                      type="email"
-                    />
-                    <button class="delete is-small" @click="removeEmail(index)"></button>
+                  <li v-for="(email, index) in editableEmails" :key="'email-' + index" class="mb-2">
+                    <div class="email-input-wrapper">
+                      <input
+                        class="input is-small"
+                        v-model="editableEmails[index]"
+                        type="email"
+                      />
+                      <button class="email-remove-btn" @click="removeEmail(index)">×</button>
+                    </div>
                   </li>
                 </ul>
 
@@ -1594,6 +1603,34 @@ button.is-disabled {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+.email-input-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.email-input-wrapper input {
+  padding-right: 1.5em; 
+}
+
+.email-remove-btn {
+  position: absolute;
+  top: 50%;
+  right: 0.5em;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  line-height: 1;
+  color: #888;
+  cursor: pointer;
+  padding: 0;
+}
+
+.email-remove-btn:hover {
+  color: #555;  
 }
 
   </style>

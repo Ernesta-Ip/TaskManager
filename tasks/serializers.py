@@ -71,7 +71,7 @@ class ListSerializer(serializers.ModelSerializer):
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    created_by = serializers.ReadOnlyField(source='created_by.email')
+    created_by = serializers.SerializerMethodField()
     lists = ListSerializer(many=True, read_only=True)
     member_email_list = serializers.SerializerMethodField()
 
@@ -84,3 +84,7 @@ class BoardSerializer(serializers.ModelSerializer):
 
     def get_member_email_list(self, obj):
         return obj.get_member_email_list()
+    
+    def get_created_by(self, obj):
+        user = obj.created_by
+        return f"{user.first_name} {user.last_name}".strip() or user.username or user.email
