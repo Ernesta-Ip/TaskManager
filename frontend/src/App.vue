@@ -10,64 +10,7 @@ import draggable from 'vuedraggable';
   </button>
 </div>
 
-<!-- Modal Create New Board -->
-<div v-if="showBoardModal" class="modal is-active">
-  <div class="modal-background" @click="closeBoardModal"></div>
-  <div class="modal-card">
-    <header class="modal-card-head">
-      <p class="modal-card-title">Create New Board</p>
-      <button class="delete" aria-label="close" @click="closeBoardModal"></button>
-    </header>
-
-    <section class="modal-card-body">
-      <form @submit.prevent="createBoard">
-        <div class="field">
-          <label class="label">Name</label>
-          <div class="control">
-            <input class="input" v-model="newBoardName" required />
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="label">Visibility</label>
-          <div class="control">
-            <div class="select is-fullwidth">
-            <select v-model="newBoardVisibility">
-              <option value="public">Public</option>
-              <option v-if="this.currentUser" value="internal">Internal</option>
-              <option v-if="this.currentUser" value="private">Private</option>
-            </select>
-            </div>
-          </div>
-        </div>
-
-      <div class="field">
-        <label class="label">Members (emails, comma separated)</label>
-        <div class="control">
-          <textarea
-            class="textarea"
-            v-model="newBoardMembers"
-            @input="validateBoardEmails"
-            :class="{ 'is-danger': newBoardEmailError }"
-            placeholder="user1@example.com, user2@example.com"
-          ></textarea>
-        </div>
-        <p class="help is-danger" v-if="newBoardEmailError">
-          Invalid email(s): {{ invalidBoardEmails.join(', ') }}
-        </p>
-      </div>
-      </form>
-    </section>
-
-    <footer class="modal-card-foot">
-      <button class="button is-success" @click="createBoard">Create</button>
-      <button class="button" @click="closeBoardModal">Cancel</button>
-    </footer>
-  </div>
-</div>
-
-
-    <aside
+<aside
      v-if="$route.name !== 'Login' && !isSidebarHidden"
       class="menu has-background-light px-5 py-5"
       :style="{ width: sidebarWidth + 'px' }"
@@ -178,7 +121,6 @@ import draggable from 'vuedraggable';
 </draggable>
 
     <!-- Add new board button-->
-     <!--TODO: remove this button for the case user is not authenticated-->
       <button class="button is-fullwidth is-small is-light mt-4" @click="showBoardModal = true" 
       :disabled="!currentUser">
           + New Board
@@ -271,16 +213,73 @@ import draggable from 'vuedraggable';
 
 </aside>
 
-      <!-- Resizer -->
-      <div
+
+  <!-- Resizer -->
+  <div
       v-if="$route.name !== 'Login'"
         class="resizer"
         :style="{ left: sidebarWidth + 'px' }"
         @mousedown="startResizing"
-      ></div>
+  ></div>
 
-        <!-- Rename Modal -->
-        <div v-if="showRenameModal" class="modal is-active">
+  <!-- Modal Create New Board -->
+  <div v-if="showBoardModal" class="modal is-active">
+    <div class="modal-background" @click="closeBoardModal"></div>
+    <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Create New Board</p>
+      <button class="delete" aria-label="close" @click="closeBoardModal"></button>
+    </header>
+
+    <section class="modal-card-body">
+      <form @submit.prevent="createBoard">
+        <div class="field">
+          <label class="label">Name</label>
+          <div class="control">
+            <input class="input" v-model="newBoardName" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Visibility</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+            <select v-model="newBoardVisibility">
+              <option value="public">Public</option>
+              <option v-if="this.currentUser" value="internal">Internal</option>
+              <option v-if="this.currentUser" value="private">Private</option>
+            </select>
+            </div>
+          </div>
+        </div>
+
+      <div class="field">
+        <label class="label">Members (emails, comma separated)</label>
+        <div class="control">
+          <textarea
+            class="textarea"
+            v-model="newBoardMembers"
+            @input="validateBoardEmails"
+            :class="{ 'is-danger': newBoardEmailError }"
+            placeholder="user1@example.com, user2@example.com"
+          ></textarea>
+        </div>
+        <p class="help is-danger" v-if="newBoardEmailError">
+          Invalid email(s): {{ invalidBoardEmails.join(', ') }}
+        </p>
+      </div>
+      </form>
+    </section>
+
+    <footer class="modal-card-foot">
+      <button class="button is-success" @click="createBoard">Create</button>
+      <button class="button" @click="closeBoardModal">Cancel</button>
+    </footer>
+    </div>
+  </div>
+
+  <!-- Rename Modal -->
+    <div v-if="showRenameModal" class="modal is-active">
           <div class="modal-background" @click="closeRenameModal"></div>
           <div class="modal-card">
             <header class="modal-card-head">
@@ -295,10 +294,9 @@ import draggable from 'vuedraggable';
               <button class="button" @click="closeRenameModal">Cancel</button>
             </footer>
           </div>
-        </div>
+    </div>
 
-
-    <!-- Archive Modal -->
+  <!-- Archive Modal -->
     <div v-if="showArchiveModal" class="modal is-active">
       <div class="modal-background" @click="closeArchiveModal"></div>
       <div class="modal-card">
@@ -316,7 +314,7 @@ import draggable from 'vuedraggable';
       </div>
     </div>
 
-    <!-- Delete Modal -->
+  <!-- Delete Modal -->
     <div v-if="showDeleteModal" class="modal is-active">
       <div class="modal-background" @click="openDeleteModal(board)"></div>
       <div class="modal-card">
@@ -336,10 +334,6 @@ import draggable from 'vuedraggable';
 
     <main class="main-content">
       <router-view />
-      <!--<router-view v-slot="{ Component }">
-        <component :is="BoardDetail" currentUser="this.currentUser">
-        </component>
-      </router-view>-->
     </main>
   </div>
 </template>
@@ -350,7 +344,6 @@ import { api } from '@/api';
 import { useRouter } from 'vue-router';
 import draggable from 'vuedraggable';
 import { ref, provide } from 'vue';
-// import BoardDetail from './views/BoardDetail.vue';
 
 export default {
   name: 'App',
@@ -382,12 +375,14 @@ export default {
       invalidBoardEmails: [],
     };
   },
+
   setup() {
     const currentUser = ref(null);
     provide('currentUser', currentUser);
     const router = useRouter();
     return { currentUser, router }; 
   },
+
   computed: {
     activeBoards() {
         return this.boards.filter(b => !b.is_archived).sort((a, b) => a.order - b.order);
@@ -435,10 +430,12 @@ export default {
   },
 
   methods: {
+
     async getBoards(){
       const boards = await api.get('boards/');
       this.boards = boards.data;
     },
+
     async getCurrentUser(){
       const res = await api.get('/auth/user/');
       this.currentUser = res.data;
@@ -452,9 +449,11 @@ export default {
     updateSidebarVisibility() {
       this.isSidebarHidden = window.innerWidth < 768;
     },
+
     startResizing() {
       this.isResizing = true;
     },
+
     resizeSidebar(e) {
       if (!this.isResizing) return;
       const minWidth = 150;
@@ -462,9 +461,58 @@ export default {
       const newWidth = e.clientX;
       this.sidebarWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
     },
+
     stopResizing() {
       this.isResizing = false;
     },
+
+    async createBoard() {
+      if (!this.currentUser) {
+        this.newBoardVisibility = 'public';
+      }
+      try {
+        this.validateBoardEmails();
+        if (this.newBoardEmailError) return;
+        const res = await api.post('boards/', {
+          name: this.newBoardName,
+          visibility: this.newBoardVisibility,
+          member_emails: this.newBoardMembers
+          .split(',')
+          .map(email => email.trim())
+          .filter(email => email)
+          .join(', '),
+        });
+
+        this.boards.push(res.data);
+        this.selectedBoardId = res.data.id;
+        this.$router.push(`/board/${res.data.id}`);
+        this.closeBoardModal();
+      } catch (err) {
+        console.error('Failed to create board:', err);
+      }
+    },
+    
+    async onBoardDrop(evt) {
+      try {
+        const isArchived = evt.from?.classList?.contains('archived');
+        const updatedList = isArchived ? this.archivedBoards : this.activeBoards;
+
+        for (let i = 0; i < updatedList.length; i++) {
+          const board = updatedList[i];
+          await api.patch(`boards/${board.id}/`, {
+            order: i,
+          });
+
+          const index = this.boards.findIndex(b => b.id === board.id);
+          if (index !== -1) {
+            this.boards[index].order = i;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to update board order:', err);
+      }
+    },
+
     toggleMenu(boardId) {
       this.menuOpenBoardId = this.menuOpenBoardId === boardId ? null : boardId;
     },
@@ -530,27 +578,25 @@ export default {
     },
 
     closeDeleteModal() {
-  this.showDeleteModal = false;
-  this.selectedBoard = null;
-}, 
+      this.showDeleteModal = false;
+      this.selectedBoard = null;
+    }, 
 
     openArchiveModal(board) {
       this.selectedBoard = board;
       this.showArchiveModal = true;
     },
-      confirmArchiveBoard() {
+    
+    confirmArchiveBoard() {
         api.patch(`boards/${this.selectedBoard.id}/`, { is_archived: true })
           .then(res => {
-           
             const idx = this.boards.findIndex(b => b.id === this.selectedBoard.id);
             if (idx !== -1) {
               this.boards[idx] = res.data;
             }
-
             if (this.selectedBoardId === this.selectedBoard.id) {
               this.$router.push('/');
             }
-
             this.showArchiveModal = false;
           })
           .catch(err => {
@@ -562,7 +608,6 @@ export default {
       this.showArchiveModal = false;
     },
 
-
     restoreBoard(board) {
       api.patch(`boards/${board.id}/`, { is_archived: false })
         .then(res => {
@@ -572,18 +617,22 @@ export default {
           console.error('Restore failed:', err);
         });
     },
+
     toggleBoardList() {
       this.showBoardList = !this.showBoardList;
     },
+
     toggleSidebar() {
       this.isSidebarHidden = !this.isSidebarHidden;
     },
+
     closeBoardModal() {
       this.showBoardModal = false;
       this.newBoardName = 'Untitled Board';
       this.newBoardVisibility = 'private';
       this.newBoardMembers = '';
     },
+
     goToBoardFromList(boardId) {
       this.selectedBoardId = boardId;
       this.$router.push(`/board/${boardId}`);
@@ -591,54 +640,8 @@ export default {
         this.isSidebarHidden = true;
       }
     },
-    async createBoard() {
-      if (!this.currentUser) {
-        this.newBoardVisibility = 'public';
-      }
-      try {
-        this.validateBoardEmails();
-        if (this.newBoardEmailError) return;
-        const res = await api.post('boards/', {
-          name: this.newBoardName,
-          visibility: this.newBoardVisibility,
-          member_emails: this.newBoardMembers
-          .split(',')
-          .map(email => email.trim())
-          .filter(email => email)
-          .join(', '),
-        });
 
-        this.boards.push(res.data);
-        this.selectedBoardId = res.data.id;
-        this.$router.push(`/board/${res.data.id}`);
-        this.closeBoardModal();
-      } catch (err) {
-        console.error('Failed to create board:', err);
-      }
-    },
-    
-async onBoardDrop(evt) {
-  try {
-    const isArchived = evt.from?.classList?.contains('archived');
-    const updatedList = isArchived ? this.archivedBoards : this.activeBoards;
-
-    for (let i = 0; i < updatedList.length; i++) {
-      const board = updatedList[i];
-      await api.patch(`boards/${board.id}/`, {
-        order: i,
-      });
-
-      const index = this.boards.findIndex(b => b.id === board.id);
-      if (index !== -1) {
-        this.boards[index].order = i;
-      }
-    }
-  } catch (err) {
-    console.error('Failed to update board order:', err);
-  }
-},
-
-      validateBoardEmails() {
+    validateBoardEmails() {
           const emails = this.newBoardMembers
             .split(',')
             .map(e => e.trim())
@@ -811,7 +814,6 @@ select {
   position: fixed;
   top: 2rem;
   left: 1rem;
-  /* width: 68px; */
   display: flex;
   justify-content: flex-start;
   padding-left: 0.1rem;
