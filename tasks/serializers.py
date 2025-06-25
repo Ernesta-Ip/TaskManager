@@ -87,4 +87,9 @@ class BoardSerializer(serializers.ModelSerializer):
     
     def get_created_by(self, obj):
         user = obj.created_by
-        return f"{user.first_name} {user.last_name}".strip() or user.username or user.email
+        return {
+            "id": user.id,
+            "email": user.email,
+            "full_name": f"{user.first_name} {user.last_name}".strip() or user.username
+        }
+

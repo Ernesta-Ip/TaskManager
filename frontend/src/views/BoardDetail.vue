@@ -40,7 +40,7 @@
         newListName: '',
         showListError: false,
         newCardTitles: {}, 
-        todayString: new Date().toISOString().split('T')[0], // "YYYY-MM-DD"
+        todayString: new Date().toISOString().split('T')[0], 
         hoveredListId: null,
         menuOpenListId: null,
         modalRename: {
@@ -80,8 +80,12 @@
         showAllEmailsModal: false,
         editableEmails: [],
         newEmailInput: '',
-        };
-
+        visibilityAlert: {
+          show: false,
+          message: '',
+          type: 'is-warning',
+            },
+      }
     },
     
     computed: {
@@ -89,8 +93,16 @@
       if (!this.board.member_email_list) return [];
       return this.showAllEmails
         ? this.board.member_email_list
-        : this.board.member_email_list.slice(0, 2);
-    }
+        : this.board.member_email_list.slice(0, 3);
+    },
+
+    isBoardOwner() {
+    return (
+      this.currentUser &&
+      this.board.created_by &&
+      this.currentUser.email === this.board.created_by.email
+    );
+  },
   },
 
     created() {
@@ -157,10 +169,21 @@
       },
       
       setVisibility(value) {
+        if (!this.isBoardOwner) {
+          this.visibilityAlert.message = 'Only the creator of this board can change its visibility. ';
+          this.visibilityAlert.type = 'is-warning';
+          this.visibilityAlert.show = true;
+          setTimeout(() => {
+            this.visibilityAlert.show = false;
+          }, 2000);
+          return;
+        }
+
         this.board.visibility = value;
         this.isVisibilityOpen = false;
         this.updateBoardVisibility(); 
       },
+
 
       renameList(list) {
         this.modalRename.isOpen = true;
@@ -765,9 +788,24 @@ async fetchBoard(boardId) {
 </script>
   
   <template>
+  
+  <!-- Visibility Notification -->
   <div class="container board-container">
+    <div class="notification-wrapper">
+      <transition name="fade">
+        <div
+          v-if="visibilityAlert.show"
+          class="notification"
+          :class="visibilityAlert.type"
+        >
+          <button class="delete" @click="visibilityAlert.show = false"></button>
+          {{ visibilityAlert.message }}
+        </div>
+      </transition>
+    </div>
+    
 
-  <!-- Board header row: name on left, visibility & members on right -->
+  <!-- Board header row: name on left, visibility, created by & members on right -->
   <section class="section pt-3 pb-3">
     <div class="container" style="padding-left: 0;">
       <div class="is-flex is-align-items-center is-flex-wrap-wrap" style="justify-content: space-between; width: 100%;">
@@ -789,57 +827,68 @@ async fetchBoard(boardId) {
 
 <div class="is-flex is-flex-wrap-wrap" style="gap: 1.5rem;">
 
-  <!-- Created by -->
+<!-- Created by -->
   <div class="mr-4">
     <label class="label is-size-7 has-text-grey-dark mb-1">Created by</label>
     <div class="is-size-7 has-text-grey mt-3">
-      {{ board.created_by || '—' }}
+      {{  board.created_by?.full_name || '—'  }}
     </div>
   </div>
 
-  <!-- Visibility -->
-  <div class="mr-4">
-    <label class="label is-size-7 has-text-grey-dark mb-1">Visibility</label>
-    <div class="dropdown" :class="{ 'is-active': isVisibilityOpen }" ref="visibilityDropdown">
-      <div class="dropdown-trigger">
-        <button
-          :disabled="!currentUser"
-          @click="isVisibilityOpen = !isVisibilityOpen"
-          aria-haspopup="true"
-          aria-expanded="isVisibilityOpen"
-        >
-          <div class="is-flex is-align-items-center is-justify-content-space-between">
-            <span class="is-size-7 icon is-small mr-2">
-              <i :class="visibilityIcon(board.visibility)"></i>
-            </span>
-            <span class="is-size-7 has-text-grey-dark">{{ visibilityLabel(board.visibility) }}</span>
-            <span class="icon is-small ml-2">
-              <i class="fas fa-angle-down" aria-hidden="true"></i>
-            </span>
-          </div>
-        </button>
-      </div>
-      
-      <div class="dropdown-menu" v-if="currentUser" role="menu" @click.self="isVisibilityOpen = false">
-        <div class="dropdown-content">
-          <a 
-          class="dropdown-item is-size-7 has-text-grey-dark" @click="setVisibility('private')">
-            <span class="icon is-small mr-2"><i class="fas fa-lock"></i></span>
-            <span>Private</span>
-          </a>
-          <a 
-          class="dropdown-item is-size-7 has-text-grey-dark" @click="setVisibility('internal')">
-            <span class="icon is-small mr-2"><i class="fas fa-users"></i></span>
-            <span>Internal</span>
-          </a>
-          <a class="dropdown-item is-size-7 has-text-grey-dark" @click="setVisibility('public')">
-            <span class="icon is-small mr-2"><i class="fas fa-globe"></i></span>
-            <span>Public</span>
-          </a>
+<!-- Visibility -->
+<div class="mr-4">
+  <label class="label is-size-7 has-text-grey-dark mb-1">Visibility</label>
+  <div class="dropdown" :class="{ 'is-active': isVisibilityOpen }" ref="visibilityDropdown">
+    <div class="dropdown-trigger">
+      <button
+        @click="isVisibilityOpen = !isVisibilityOpen"
+        aria-haspopup="true"
+        aria-expanded="isVisibilityOpen"
+      >
+        <div class="is-flex is-align-items-center is-justify-content-space-between">
+          <span class="is-size-7 icon is-small mr-2">
+            <i :class="visibilityIcon(board.visibility)"></i>
+          </span>
+          <span class="is-size-7 has-text-grey-dark">{{ visibilityLabel(board.visibility) }}</span>
+          <span class="icon is-small ml-2">
+            <i class="fas fa-angle-down" aria-hidden="true"></i>
+          </span>
         </div>
+      </button>
+    </div>
+
+    <!-- Visibility options -->
+    <div class="dropdown-menu" role="menu" @click.self="isVisibilityOpen = false">
+      <div class="dropdown-content">
+        <a 
+          class="dropdown-item is-size-7 has-text-grey-dark"
+          :class="{ 'is-disabled': !isBoardOwner }"
+          @click="setVisibility('private')"
+        >
+          <span class="icon is-small mr-2"><i class="fas fa-lock"></i></span>
+          <span>Private</span>
+        </a>
+        <a 
+          class="dropdown-item is-size-7 has-text-grey-dark"
+          :class="{ 'is-disabled': !isBoardOwner }"
+          @click="setVisibility('internal')"
+        >
+          <span class="icon is-small mr-2"><i class="fas fa-users"></i></span>
+          <span>Internal</span>
+        </a>
+        <a 
+          class="dropdown-item is-size-7 has-text-grey-dark"
+          :class="{ 'is-disabled': !isBoardOwner }"
+          @click="setVisibility('public')"
+        >
+          <span class="icon is-small mr-2"><i class="fas fa-globe"></i></span>
+          <span>Public</span>
+        </a>
       </div>
     </div>
   </div>
+</div>
+
 
 <!-- Members -->
 <div class="mr-4">
@@ -876,7 +925,6 @@ async fetchBoard(boardId) {
     </div>
   </div>
 </div>
-
 
 <!-- Dropdown wrapper -->
 <div class="dropdown is-right" :class="{ 'is-active': isUserMenuOpen }">
@@ -1192,15 +1240,15 @@ async fetchBoard(boardId) {
       <hr />
 
        <!-- Comments field  -->
-        <ul class="content comments">
-  <li
-    v-for="comment in activeCard.comments"
-    :key="comment.id"
-    class="mb-3 pb-2"
-    style="border-bottom:1px solid #f1f1f1;"
-  >
-    <div class="is-flex is-align-items-center mb-1">
-      <!-- user's picture -->
+    <ul class="content comments">
+        <li
+          v-for="comment in activeCard.comments"
+          :key="comment.id"
+          class="mb-3 pb-2"
+          style="border-bottom:1px solid #f1f1f1;"
+        >
+      <div class="is-flex is-align-items-center mb-1">
+      <!-- user's picture in comments -->
       <img
         v-if="comment.author?.social_accounts?.[0]?.extra_data?.picture"
         :src="comment.author.social_accounts[0].extra_data.picture"
@@ -1264,8 +1312,6 @@ async fetchBoard(boardId) {
     </div>
   </li>
 </ul>
-
-
 
       <form @submit.prevent="addComment">
         <div class="field has-addons">
@@ -1631,6 +1677,37 @@ button.is-disabled {
 
 .email-remove-btn:hover {
   color: #555;  
+}
+
+.notification-wrapper {
+  position: fixed;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  width: max-content;
+  max-width: 90%;
+  pointer-events: none;
+}
+
+.notification {
+  position: relative;
+  padding-right: 2.5rem; 
+}
+
+.notification .delete {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
   </style>
