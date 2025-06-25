@@ -80,6 +80,8 @@
         showAllEmailsModal: false,
         editableEmails: [],
         newEmailInput: '',
+        email: '',         
+        emailError: false,
         visibilityAlert: {
           show: false,
           message: '',
@@ -712,16 +714,32 @@ async fetchBoard(boardId) {
         async saveUpdatedEmails() {
           try {
             const cleanEmails = this.editableEmails.map(email => email.trim()).filter(Boolean);
-            // const res = await api.patch(`boards/${this.board.id}/`, {
-            //   member_emails: cleanEmails.join(','),
-            // });
-            this.board.member_email_list = cleanEmails;
-            this.showAllEmailsModal = false;
+            const res = await api.patch(`boards/${this.board.id}/`, {
+              member_emails: cleanEmails.join(',')
+            });
+            this.board.member_email_list = res.data.member_email_list;
+            this.board.member_emails      = res.data.member_emails;
+            this.showAllEmailsModal       = false;
           } catch (err) {
             console.error('Failed to save updated emails:', err);
+            alert('Не удалось сохранить участников. Попробуйте ещё раз.');
           }
         },
 
+
+onEnterEmail() {
+ 
+    if (!this.$refs.email.checkValidity()) {
+      this.emailError = true
+      return
+    }
+    this.emailError = false
+    const e = this.email.trim()
+    if (e && !this.editableEmails.includes(e)) {
+      this.editableEmails.push(e)
+    }
+    this.email = ''
+  },
         toggleShowAllEmails() {
           this.showAllEmails = !this.showAllEmails;
         },
@@ -1231,20 +1249,21 @@ async fetchBoard(boardId) {
           </div>
       </div>
 
-      <div class="field">
+      <!-- <div class="field">
         <label class="label">Members (emails)</label>
         <div class="control">
           <input class="input" v-model="activeCard.membersString" placeholder="user1@example.com, user2@example.com" />
         </div>
       </div>
-      <hr />
+      <hr /> -->
 
        <!-- Comments field  -->
-    <ul class="content comments">
+        <label class="label">Comments</label>
+        <ul class="content comments">
         <li
           v-for="comment in activeCard.comments"
           :key="comment.id"
-          class="mb-3 pb-2"
+          class="mb-4 pb-2"
           style="border-bottom:1px solid #f1f1f1;"
         >
       <div class="is-flex is-align-items-center mb-1">
@@ -1457,21 +1476,24 @@ async fetchBoard(boardId) {
                   </li>
                 </ul>
 
-                <!-- Single input to add new email -->
-                <div class="field has-addons mt-4">
-                  <div class="control is-expanded">
-                    <input
-                      class="input is-small"
-                      v-model="newEmailInput"
-                      type="email"
-                      placeholder="Add new email"
-                      @keyup.enter="addEmail"
-                    />
-                  </div>
-                  <div class="control">
-                    <button class="button is-small is-info" @click="addEmail">Add</button>
-                  </div>
+            <!-- Single input to add new email -->
+              <div class="field has-addons mt-4">
+                <div class="control is-expanded">
+                  <input
+                    id="email"
+                    ref="email"
+                    class="input is-small"
+                    v-model="email"
+                    type="email"
+                    placeholder="Add new email"
+                    @keyup.enter="onEnterEmail"
+                  />
                 </div>
+                <div class="control">
+                  <button class="button is-small is-info" @click="onEnterEmail">Add</button>
+                </div>
+              </div>
+              <p class="help is-danger" v-if="emailError">Please enter a valid email.</p>
               </section>
               <footer class="modal-card-foot is-justify-content-flex-end">
                 <button class="button is-success" @click="saveUpdatedEmails">Save</button>

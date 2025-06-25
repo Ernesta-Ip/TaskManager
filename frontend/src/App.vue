@@ -10,7 +10,7 @@ import draggable from 'vuedraggable';
   </button>
 </div>
 
-
+<!-- Modal Create New Board -->
 <div v-if="showBoardModal" class="modal is-active">
   <div class="modal-background" @click="closeBoardModal"></div>
   <div class="modal-card">
@@ -41,16 +41,21 @@ import draggable from 'vuedraggable';
           </div>
         </div>
 
-        <div class="field">
-          <label class="label">Members (emails, comma separated)</label>
-          <div class="control">
-            <textarea
-              class="textarea"
-              v-model="newBoardMembers"
-              placeholder="user1@example.com, user2@example.com"
-            ></textarea>
-          </div>
+      <div class="field">
+        <label class="label">Members (emails, comma separated)</label>
+        <div class="control">
+          <textarea
+            class="textarea"
+            v-model="newBoardMembers"
+            @input="validateBoardEmails"
+            :class="{ 'is-danger': newBoardEmailError }"
+            placeholder="user1@example.com, user2@example.com"
+          ></textarea>
         </div>
+        <p class="help is-danger" v-if="newBoardEmailError">
+          Invalid email(s): {{ invalidBoardEmails.join(', ') }}
+        </p>
+      </div>
       </form>
     </section>
 
@@ -274,50 +279,6 @@ import draggable from 'vuedraggable';
         @mousedown="startResizing"
       ></div>
 
-      <!-- Create Board Modal -->
-    <div v-if="showBoardModal" class="modal is-active">
-      <div class="modal-background" @click="closeBoardModal"></div>
-      <div class="modal-card">
-        <header class="modal-card-head">
-          <p class="modal-card-title">Create New Board</p>
-          <button class="delete" aria-label="close" @click="closeBoardModal"></button>
-        </header>
-        <section class="modal-card-body">
-          <form @submit.prevent="createBoard">
-            <div class="field">
-              <label class="label">Name</label>
-              <div class="control">
-                <input class="input" v-model="newBoardName" required />
-              </div>
-            </div>
-            <div class="field">
-              <label class="label">Visibility</label>
-              <div class="control">
-                <div class="select is-fullwidth">
-                  <select v-model="newBoardVisibility">
-                    <option value="public">Public</option>
-                    <option v-if="this.currentUser" value="internal">Internal</option>
-                    <option v-if="this.currentUser" value="private">Private</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="field">
-              <label class="label">Members (emails, comma separated)</label>
-              <div class="control">
-                <textarea class="textarea" v-model="newBoardMembers" placeholder="user1@example.com, user2@example.com"></textarea>
-              </div>
-            </div>
-          </form>
-        </section>
-        <footer class="modal-card-foot">
-          <button class="button is-success" @click="createBoard">Create</button>
-          <button class="button" @click="closeBoardModal">Cancel</button>
-        </footer>
-      </div>
-    </div>
-
-    
         <!-- Rename Modal -->
         <div v-if="showRenameModal" class="modal is-active">
           <div class="modal-background" @click="closeRenameModal"></div>
@@ -417,6 +378,8 @@ export default {
       newBoardMembers: '',
       sidebarWidth: 240,
       isResizing: false,
+      newBoardEmailError: false,
+      invalidBoardEmails: [],
     };
   },
   setup() {
@@ -633,6 +596,8 @@ export default {
         this.newBoardVisibility = 'public';
       }
       try {
+        this.validateBoardEmails();
+        if (this.newBoardEmailError) return;
         const res = await api.post('boards/', {
           name: this.newBoardName,
           visibility: this.newBoardVisibility,
@@ -673,7 +638,15 @@ async onBoardDrop(evt) {
   }
 },
 
-
+      validateBoardEmails() {
+          const emails = this.newBoardMembers
+            .split(',')
+            .map(e => e.trim())
+            .filter(e => e);
+          const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          this.invalidBoardEmails = emails.filter(e => !re.test(e));
+          this.newBoardEmailError = this.invalidBoardEmails.length > 0;
+        },
 
   },
 };

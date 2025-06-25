@@ -17,7 +17,6 @@ class UserSerializer(UserDetailsSerializer):
 
     class Meta:
         model = User
-        # fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile_picture', 'social_accounts'] #+ ('social_accounts',)
         fields = UserDetailsSerializer.Meta.fields + ('social_accounts',)
 
     def get_profile_picture(self, user):
@@ -33,7 +32,7 @@ class UserSerializer(UserDetailsSerializer):
             return {
                 'provider': social_account.provider,
                 'uid': social_account.uid,
-                'extra_data': social_account.extra_data,  # includes name, email, picture, etc.
+                'extra_data': social_account.extra_data,  
             }
         except SocialAccount.DoesNotExist:
             return None
