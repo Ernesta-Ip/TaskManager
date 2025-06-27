@@ -277,6 +277,7 @@ export default {
       this.modalDelete.listId = listId;
       this.modalDelete.name = list.name;
     },
+
     async confirmDelete() {
       const id = this.modalDelete.listId;
       try {
@@ -330,7 +331,6 @@ export default {
           console.error('Error downloading file:', err);
         }
       },
-
 
     async fetchBoard(boardId) {
       try {
@@ -488,12 +488,29 @@ export default {
       }
     },
 
-    async handleAttachment(event) {
-      //if(event) // depending on attachment or removal
-      const file = event.target.files[0];
+  async handleAttachment(eOrAction) {
+    // if new file is picked
+    if (eOrAction && eOrAction.target && eOrAction.target.files) {
+      const file = eOrAction.target.files[0];
       this.activeCard.attachment = file;
       this.activeCard.attachment_new = true;
-    },
+
+    // just opening the “are you sure?” modal
+    } else if (eOrAction === 'openRemoveModal') {
+      this.modalDeleteAttachment.isOpen = true;
+
+    // user clicked “Remove” in that modal
+    } else if (eOrAction === 'confirmRemove') {
+      try {
+        await api.patch(`cards/${this.activeCard.id}/`, { attachment: null });
+        this.activeCard.attachment = null;
+        this.modalDeleteAttachment.isOpen = false;
+      } catch (err) {
+        console.error('Failed to remove attachment:', err);
+        alert('Could not remove attachment.');
+      }
+    }
+  },
 
     getAttachmentName(attachment) {
       if (!attachment) return '';
@@ -570,23 +587,7 @@ export default {
       }
     },
 
-    removeAttachment() {
-      this.modalDeleteAttachment.isOpen = true;
-    },
-
-    async confirmRemoveAttachment() {
-      try {
-        await api.patch(`cards/${this.activeCard.id}/`, {
-          attachment: null,
-        });
-        this.activeCard.attachment = null;
-        this.modalDeleteAttachment.isOpen = false;
-      } catch (err) {
-        console.error('Failed to remove attachment:', err);
-        alert('Could not remove attachment.');
-      }
-    },
-
+   
     async addComment() {
       if (!this.activeCard.newComment) return;
       try {
@@ -1143,16 +1144,28 @@ export default {
         <div class="field">
           <label class="label">Attachment</label>
           <div class="control">
-            <input class="input" type="file" @change="handleAttachment" />
+            <input
+              class="input"
+              type="file"
+              @change="handleAttachment"
+            />
           </div>
           <div v-if="activeCard.attachment" class="mt-2">
-            <span v-if="!activeCard.attachment_new">
-              <a @click.prevent="downloadFile(activeCard.attachment)" :download="getAttachmentName(activeCard.attachment)"
-                target="_blank" rel="noopener noreferrer" class="has-text-link">
+            <span v-if="activeCard.attachment" class="mt-2">
+              <a
+                @click.prevent="downloadFile(activeCard.attachment)"
+                :download="getAttachmentName(activeCard.attachment)"
+                target="_blank" rel="noopener noreferrer"
+                class="has-text-link"
+              >
                 📎 {{ getAttachmentName(activeCard.attachment) }}
-                <button class="delete is-small" @click="removeAttachment"></button>
+                <!-- open the “remove?” modal -->
+                <button
+                  class="delete is-small"
+                  @click.stop="handleAttachment('openRemoveModal')"
+                ></button>
               </a>
-             </span>
+            </span>
           </div>
         </div>
 
@@ -1253,23 +1266,41 @@ export default {
   </div>
 
   <!-- Confirm Attachment Deletion Modal -->
-  <div class="modal" v-if="activeCard" :class="{ 'is-active': modalDeleteAttachment.isOpen }">
-    <div class="modal-background" @click="modalDeleteAttachment.isOpen = false"></div>
-    <div class="modal-card">
-      <header class="modal-card-head">
-        <p class="modal-card-title">Remove Attachment</p>
-        <button class="delete" aria-label="close" @click="modalDeleteAttachment.isOpen = false"></button>
-      </header>
-      <section class="modal-card-body">
-        Are you sure you want to remove the attached file <strong>"{{ activeCard ?
-          getAttachmentName(activeCard.attachment) : '' }}"</strong>?
-      </section>
-      <footer class="modal-card-foot">
-        <button class="button is-danger" @click="confirmRemoveAttachment">Remove</button>
-        <button class="button" @click="modalDeleteAttachment.isOpen = false">Cancel</button>
-      </footer>
-    </div>
+ <div
+  class="modal"
+  v-if="activeCard"
+  :class="{ 'is-active': modalDeleteAttachment.isOpen }"
+>
+  <div class="modal-background" @click="modalDeleteAttachment.isOpen = false"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Remove Attachment</p>
+      <button
+        class="delete"
+        aria-label="close"
+        @click="modalDeleteAttachment.isOpen = false"
+      ></button>
+    </header>
+    <section class="modal-card-body">
+      Are you sure you want to remove
+      <strong>"{{ getAttachmentName(activeCard.attachment) }}"</strong>?
+    </section>
+    <footer class="modal-card-foot">
+      <button
+        class="button is-danger"
+        @click="handleAttachment('confirmRemove')"
+      >
+        Remove
+      </button>
+      <button
+        class="button"
+        @click="modalDeleteAttachment.isOpen = false"
+      >
+        Cancel
+      </button>
+    </footer>
   </div>
+</div>
 
 
   <!-- Rename List Modal Window -->

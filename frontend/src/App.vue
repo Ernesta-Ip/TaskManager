@@ -410,8 +410,6 @@ export default {
         this.getCurrentUser();
       }
       this.getBoards(); 
-
-      // TODO: what does the following block do? 
       const currentId = this.$route.params.id;
       if (currentId) {
         this.selectedBoardId = currentId;
