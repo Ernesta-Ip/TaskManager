@@ -6,9 +6,6 @@ export default {
   data() {
     return {
       boards: [],
-      // newBoardName: '',
-      // newBoardVisibility: 'private',
-      // isSkipped: false,
     };
   },
   async mounted() {

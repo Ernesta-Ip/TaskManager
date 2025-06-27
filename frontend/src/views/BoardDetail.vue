@@ -10,7 +10,9 @@ export default {
     const currentUser = inject('currentUser');
     return { currentUser };
   },
+
   components: { draggable },
+
   async mounted() {
     document.addEventListener('click', this.handleClickOutside);
     document.addEventListener('click', this.handleClickOutsideInput);
@@ -112,13 +114,13 @@ export default {
   },
 
   watch: {
-    // TODO: what does the watcher concerning $route.params.id do? 
     '$route.params.id': {
       immediate: true,
       handler(newId) {
         this.fetchBoard(newId);
       }
     },
+
     async currentUser(newValue) {
       if (newValue) {
         const res2 = await api.get('/social-accounts/');
@@ -258,7 +260,6 @@ export default {
         this.modalRenameBoard.isOpen = false;
         return;
       }
-
       try {
         const res = await api.patch(`boards/${this.board.id}/`, { name });
         this.board.name = res.data.name;
@@ -268,6 +269,7 @@ export default {
         alert('Could not rename board.');
       }
     },
+
     deleteList(listId) {
       const list = this.board.lists.find(l => l.id === listId);
       if (!list) return;
@@ -303,34 +305,32 @@ export default {
     },
 
     async downloadFile(filename) {
-      const token = localStorage.getItem('authToken'); // adjust if using cookies or other auth
-      let shortname = filename.split('/').pop();
+        const token = localStorage.getItem('authToken');
+        const shortname = filename.split('/').pop();
 
-      try {
-        // TODO: here, not fetch should be used, but api.get... 
-        const response = await fetch(`http://localhost:8000/api/v1/download/${shortname}/`, {
-          method: 'GET',
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        });
+        try {
+          const res = await api.get(`/download/${shortname}/`, {
+            responseType: 'blob',
+            headers: {
+              Authorization: `Token ${token}`,
+            }
+          });
+          const blob = res.data;
+          const url = window.URL.createObjectURL(blob);
 
-        if (!response.ok) throw new Error('Download failed');
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = shortname;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
 
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
+        } catch (err) {
+          console.error('Error downloading file:', err);
+        }
+      },
 
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = shortname;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      } catch (err) {
-        console.error('Error downloading file:', err);
-      }
-    },
 
     async fetchBoard(boardId) {
       try {
@@ -388,7 +388,6 @@ export default {
       );
 
       if (!targetList) return;
-
 
       for (let i = 0; i < targetList.cards.length; i++) {
         const card = targetList.cards[i];
@@ -474,7 +473,6 @@ export default {
         await api.patch(`cards/${this.activeCard.id}/`, {
           list: this.activeCard.list,
         });
-
 
         const movedCard = { ...this.activeCard };
 
@@ -576,7 +574,6 @@ export default {
       this.modalDeleteAttachment.isOpen = true;
     },
 
-    //TODO: move functionality of confirmRemoveAttachment to handleAttachment
     async confirmRemoveAttachment() {
       try {
         await api.patch(`cards/${this.activeCard.id}/`, {
@@ -648,6 +645,7 @@ export default {
       this.editingCommentId = null;
       this.editingCommentText = '';
     },
+
     async saveEditedComment(comment) {
       if (!this.editingCommentText.trim()) {
         alert('Comment text cannot be empty');
@@ -694,7 +692,6 @@ export default {
       this.showAllEmailsModal = true;
     },
 
-
     addEmail() {
       const email = this.newEmailInput.trim();
       if (!email) return;
@@ -723,9 +720,7 @@ export default {
       }
     },
 
-
     onEnterEmail() {
-
       if (!this.$refs.email.checkValidity()) {
         this.emailError = true
         return
@@ -737,9 +732,11 @@ export default {
       }
       this.email = ''
     },
+
     toggleShowAllEmails() {
       this.showAllEmails = !this.showAllEmails;
     },
+
     handleOutsideEmailClick(e) {
       const listWrapper = this.$refs.emailDropdownWrapper;
       if (this.showAllEmails && listWrapper && !listWrapper.contains(e.target)) {
@@ -758,7 +755,7 @@ export default {
 
     async cloneList(originalList) {
       try {
-        // 1. new list
+        // creating new list
         const res = await api.post('lists/', {
           name: originalList.name + ' (copy)',
           board: this.board.id,
@@ -767,7 +764,7 @@ export default {
         const newList = res.data;
         newList.cards = [];
 
-        // 2. clone cards (deep copy)
+        // cloning cards
         const clonePromises = originalList.cards.map(card =>
           api.post('cards/', {
             title: card.title,
@@ -781,14 +778,13 @@ export default {
         const cardResponses = await Promise.all(clonePromises);
         newList.cards = cardResponses.map(r => r.data);
 
-        // 3. add to IU
+        // adding to UI
         this.board.lists.push(newList);
       } catch (err) {
         console.error('Failed to clone list:', err);
         alert('Could not clone list.');
       }
     },
-
 
     toggleListMenu(listId) {
       this.menuOpenListId = this.menuOpenListId === listId ? null : listId;
@@ -1053,7 +1049,6 @@ export default {
                       <span class="icon is-small"><i class="fas fa-trash"></i></span>
                     </button>
 
-
                   </span>
 
                 </li>
@@ -1077,8 +1072,6 @@ export default {
               </div>
             </form>
           </div>
-
-
         </div>
       </template>
 
@@ -1416,9 +1409,7 @@ export default {
 
 .list-header:hover .delete-button {
   visibility: visible;
-  /* показывается при наведении */
 }
-
 
 .comments {
   padding-left: 1rem;
@@ -1460,8 +1451,6 @@ export default {
   .add-list {
     width: 100%;
   }
-
-
 }
 
 .card-details input,

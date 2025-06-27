@@ -35,7 +35,7 @@ class CustomGoogleOAuth2Client(OAuth2Client):
         access_token_method,
         access_token_url,
         callback_url,
-        _scope,  # This is fix for incompatibility between django-allauth==65.3.1 and dj-rest-auth==7.0.1
+        _scope,  
         scope_delimiter=" ",
         headers=None,
         basic_auth=False,
@@ -65,16 +65,8 @@ class GoogleLogin(SocialLoginView):
     callback_url = settings.GOOGLE_OAUTH_CALLBACK_URL
     client_class = CustomGoogleOAuth2Client # OAuth2Client
 
-
-# def login_redirect_view(request):
-#      board = Board.objects.filter(is_archived=False).order_by('id').first()
-#      if board:
-#          return redirect(f'http://localhost:8080/board/{board.id}')
-#      return redirect('http://localhost:8080/dashboard')
-
    
 class BoardViewSet(viewsets.ModelViewSet):
-    # queryset = Board.objects.all()
     serializer_class = BoardSerializer
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
@@ -113,19 +105,12 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class GoogleLoginCallback(APIView):
     def get(self, request, *args, **kwargs):
-        """
-        If you are building a fullstack application (eq. with React app next to Django)
-        you can place this endpoint in your frontend application to receive
-        the JWT tokens there - and store them in the state
-        """
-
         code = request.GET.get("code")
 
         if code is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         token_endpoint_url = urljoin("http://localhost:8000", reverse("google_login"))
-        print("token_endpoint_url", token_endpoint_url)
         response = requests.post(url=token_endpoint_url, data={"code": code})
         return Response(response.json(), status=status.HTTP_200_OK)
 

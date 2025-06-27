@@ -51,7 +51,6 @@ class Comment(models.Model):
     def __str__(self):
         return f'Comment by {self.author.username} on {self.card.title}'
     def save(self, *args, **kwargs):
-        # if current comment was edited
         if self.pk is not None and self.has_changed():
             self.edited_at = timezone.now()
         super().save(*args, **kwargs)
